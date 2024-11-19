@@ -1,33 +1,21 @@
-use rusqlite::{Connection, Result};
+use tokio_postgres::{Error, NoTls};
 
-fn init_users(conn: &Connection) -> Result<()> {
-    let sql_query = "
-      CREATE TABLE IF NOT EXISTS user (
-      id INTEGER PRIMARY KEY,
-      name TEXT NOT NULL,
-      age INTEGER
-    );";
-    conn.execute(sql_query, [])?;
-    Ok(())
-}
+pub async fn init_db() -> Result<(), Error> {
+    let postgres_config = "host=localhost user=postgres password=yourpassword database=api";
+    let (client, connection) = tokio_postgres::connect(&postgres_config, NoTls).await?;
+    tokio::spawn(async move {
+      if let Err(e) = connection.await {
+        eprintln!("Connection error: {}", e);
+      }
+    });
 
-fn init_notes(conn: &Connection) -> Result<()> {
-    let sql_query: &str = "
-      CREATE TABLE IF NOT EXISTS notes (
-      id INTEGER PRIMARY KEY,
-      title TEXT NOT NULL,
-      body TEXT,
-      created_at TIMESTAMPTZ
-    );";
-    conn.execute(sql_query, [])?;
-    Ok(())
-}
+    let sql_client_query = "SELECT * FROM users;";
+    let rows = client.query(sql_client_query, &[]).await?;
+    for row in rows {
+      let id: u32 = row.get(0);
+      let name: &str = row.get(1);
+      println!("Found row: id = {}, name = {}", id, name);
+    }
 
-pub fn init_db() -> Result<()> {
-    let conn = Connection::open("mydatabase.db")?;
-
-    let users = init_users(&conn);
-    let notes = init_notes(&conn);
-    println!("Database connected!");
     Ok(())
 }
