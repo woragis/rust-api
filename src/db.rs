@@ -34,10 +34,10 @@ pub async fn init_db() -> Result<Client, Error> {
     client
         .batch_execute(
             "CREATE TABLE IF NOT EXISTS items (
-      id UUID PRIMARY KEY,
-      name TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL,
-  );",
+            id UUID PRIMARY KEY,
+            name TEXT NOT NULL,
+            created_at TIMESTAMPTZ NOT NULL,
+        );",
         )
         .await?;
     Ok(client)
@@ -58,7 +58,7 @@ pub async fn get_all_items(client: &Client) -> Result<Vec<Item>, Error> {
     let mut items = Vec::new();
     for row in rows {
         let item = Item {
-            id: row.get::<Uuid, _>(0),
+            id: row.get(0),
             name: row.get(1),
             created_at: row.get(2),
         };
@@ -68,10 +68,9 @@ pub async fn get_all_items(client: &Client) -> Result<Vec<Item>, Error> {
     Ok(items)
 }
 
-/*
 pub async fn get_item_by_id(client: &Client, id: Uuid) -> Result<Option<Item>, Error> {
     let stmt = "SELECT id, name, created_at FROM items WHERE id=$1";
-    let rows = client.query(stmt, &[&id]).await?;
+    let rows = client.query(stmt, &[&id.to_string()]).await?;
 
     if let Some(row) = rows.into_iter().next() {
         let item = Item {
@@ -97,5 +96,3 @@ pub async fn delete_item(client: &Client, id: Uuid) -> Result<(), Error> {
 
     Ok(())
 }
-
-*/

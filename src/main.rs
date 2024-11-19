@@ -5,7 +5,7 @@ use tokio_postgres::Client;
 use uuid::Uuid;
 
 mod db;
-use db::{init_db, get_all_items, insert_item, Item};
+use db::{delete_item, get_all_items, get_item_by_id, init_db, insert_item, update_item, Item};
 
 #[derive(Clone)]
 struct AppState {
@@ -29,8 +29,6 @@ async fn get_all_items_handler(state: web::Data<AppState>) -> impl Responder {
         Err(_) => HttpResponse::InternalServerError().body("Failed to fetch items"),
     }
 }
-
-/*
 
 async fn get_item_handler(item_id: web::Path<Uuid>, state: web::Data<AppState>) -> impl Responder {
     let client = state.db_client.lock().unwrap();
@@ -64,8 +62,6 @@ async fn delete_item_handler(
     }
 }
 
-*/
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     println!("Program is running!");
@@ -79,10 +75,8 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .route("/items", web::post().to(create_item))
             .route("/items", web::get().to(get_all_items_handler))
-            /*
             .route("/items/{id}", web::get().to(get_item_handler))
             .route("/items/{id}", web::put().to(update_item_handler))
-            */
     })
     .bind("127.0.0.1:8000")?
     .run()
