@@ -1,5 +1,5 @@
-mod db;
 mod controllers;
+mod db;
 mod routes;
 
 use actix_web::{web, App, HttpServer};
