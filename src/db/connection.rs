@@ -1,7 +1,7 @@
-use tokio_postgres::{Client, NoTls};
 use std::error::Error;
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use tokio_postgres::{Client, NoTls};
 
 pub struct DbConnection {
     client: Arc<Mutex<Client>>,
