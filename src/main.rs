@@ -1,10 +1,12 @@
 mod controllers;
 mod db;
+mod models;
 mod routes;
+mod utils;
 
 use actix_web::{web, App, HttpServer};
 use db::connection::DbConnection;
-use routes::{products::configure_products_routes, users::configure_users_routes};
+use routes::{auth::login, products::configure_products_routes, users::configure_users_routes};
 use std::sync::Arc;
 
 #[actix_web::main]
@@ -21,6 +23,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(db.clone())) // Share DB connection
             .configure(configure_users_routes)
             .configure(configure_products_routes)
+            .service(login)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
