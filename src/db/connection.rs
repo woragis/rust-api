@@ -1,21 +1,21 @@
-use tokio_postgres::{Client, Error, NoTls};
+use tokio_postgres::{Client, NoTls};
+use std::error::Error;
 
-pub async fn connect_db() -> Result<Client, Error> {
-    let connection_str = "host=localhost user=postgres password=yourpassword database=api";
-    let (client, connection) = tokio_postgres::connect(connection_str, NoTls).await?;
-    tokio::spawn(async move {
-        if let Err(e) = connection.await {
-            eprintln!("Connection error: {}", e);
-        }
-    });
+pub struct DbConnection {
+    client: Client,
+}
 
-    let sql_client_query = "SELECT * FROM users;";
-    let rows = client.query(sql_client_query, &[]).await?;
-    for row in rows {
-        let id: u32 = row.get(0);
-        let name: &str = row.get(1);
-        println!("Found row: id = {}, name = {}", id, name);
+impl DbConnection {
+    pub async fn new(conn_str: &str) -> Result<Self, Box<dyn Error>> {
+        let (client, connection) = tokio_postgres::connect(conn_str, NoTls).await?;
+        tokio::spawn(async move {
+            if let Err(e) = connection.await {
+                eprintln!("Connection error: {}", e);
+            }
+        });
+        Ok(Self {client})
     }
-
-    Ok(client)
+    pub fn get_client(&self) -> &Client {
+        &self.client
+    }
 }
