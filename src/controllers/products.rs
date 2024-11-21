@@ -9,10 +9,10 @@ use db::operations::products::{
 
 pub async fn create_product_handler(
     db: web::Data<DbConnection>,
-    user: web::Json<Product>,
+    product: web::Json<Product>,
 ) -> impl Responder {
     let client = db.get_client();
-    if let Err(err) = create_product(client, &user.into_inner()).await {
+    if let Err(err) = create_product(client, &product.into_inner()).await {
         return HttpResponse::InternalServerError().body(format!("Error: {}", err));
     }
     HttpResponse::Created().finish()
@@ -24,7 +24,7 @@ pub async fn read_product_handler(
 ) -> impl Responder {
     let client = db.get_client();
     match read_product(client, product_id.into_inner()).await {
-        Ok(Some(user)) => HttpResponse::Ok().json(user),
+        Ok(Some(product)) => HttpResponse::Ok().json(product),
         Ok(None) => HttpResponse::NotFound().body("Product not found"),
         Err(err) => HttpResponse::InternalServerError().body(format!("Error: {}", err)),
     }
@@ -33,7 +33,7 @@ pub async fn read_product_handler(
 pub async fn read_products_handler(db: web::Data<DbConnection>) -> impl Responder {
     let client = db.get_client();
     match read_products(client).await {
-        Ok(users) => HttpResponse::Ok().json(users),
+        Ok(product) => HttpResponse::Ok().json(product),
         Err(err) => HttpResponse::InternalServerError().body(format!("Error: {}", err)),
     }
 }
