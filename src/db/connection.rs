@@ -1,8 +1,10 @@
 use tokio_postgres::{Client, NoTls};
 use std::error::Error;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 pub struct DbConnection {
-    client: Client,
+    client: Arc<Mutex<Client>>,
 }
 
 impl DbConnection {
@@ -13,9 +15,11 @@ impl DbConnection {
                 eprintln!("Connection error: {}", e);
             }
         });
-        Ok(Self {client})
+        Ok(Self {
+            client: Arc::new(Mutex::new(client)),
+        })
     }
-    pub fn get_client(&self) -> &Client {
-        &self.client
+    pub fn get_client(&self) -> Arc<Mutex<Client>> {
+        self.client.clone()
     }
 }

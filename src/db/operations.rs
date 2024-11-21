@@ -1,56 +1,62 @@
-use tokio_postgres::{Client, Error};
+use serde::Serialize;
+use std::sync::Arc;
+use tokio::sync::Mutex;
+use tokio_postgres::Client;
+use std::error::Error;
 
-pub async fn create_table(client: &Client) -> Result<(), Error> {
-    let query = "
-    CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL
-    );
-  ";
-    client.execute(query, &[]).await?;
+#[derive(Debug, Serialize)]
+pub struct User {
+    pub id: u32,
+    pub name: String,
+    pub email: String,
+}
 
-    println!("Table 'users' created succeffully");
+pub async fn create_user(client: Arc<Mutex<Client>>, name: &str, email: &str) -> Result<(), Box<dyn Error>> {
+    let create_user_sql = "INSERT INTO users (name, email) VALUES ($1, $2);";
+    client.lock().await.execute(create_user_sql, &[&name, &email]).await?;
 
     Ok(())
 }
 
-// Create (Insert)
-pub async fn create_user(client: &Client, name: &str) -> Result<(), tokio_postgres::Error> {
-    let query = "INSERT INTO users (name) VALUES ($1)";
-    client.execute(query, &[&name]).await?;
-    println!("User '{}' added successfully.", name);
-    Ok(())
-}
+pub async fn read_user(client: Arc<Mutex<Client>>, id: u32) -> Result<Option<User>, Box<dyn Error>> {
+    let read_user_sql = "SELECT * FROM users WHERE id = $1";
+    let row = client.lock().await.query_opt(read_user_sql, &[&id]).await?;
 
-// Read (Select)
-pub async fn read_users(client: &Client) -> Result<(), tokio_postgres::Error> {
-    let query = "SELECT id, name FROM users";
-    let rows = client.query(query, &[]).await?;
-    println!("Current users:");
-    for row in rows {
-        let id: i32 = row.get("id");
-        let name: &str = row.get("name");
-        println!("  id: {}, name: {}", id, name);
+    if let Some(row) = row {
+        Ok(Some(User {
+            id: row.get(0),
+            name: row.get(1),
+            email: row.get(2),
+        }))
+    } else {
+        Ok(None)
     }
+}
+
+pub async fn read_users(client: Arc<Mutex<Client>>) -> Result<Vec<User>, Box<dyn Error>> {
+    let read_users_sql = "SELECT * FROM users;";
+    let rows = client.lock().await.query(read_users_sql, &[]).await?;
+    let users = rows.iter().map(
+        |row| User {
+            id: row.get(0),
+            name: row.get(1),
+            email: row.get(2),
+        }
+    ).collect();
+
+    Ok(users)
+}
+
+pub async fn update_user(client: Arc<Mutex<Client>>, id: u32, name: &str, email: &str) -> Result<(), Box<dyn Error>> {
+    let update_user_sql = "UPDATE users SET name = $1, email = $2 WHERE id = $3";
+    client.lock().await.execute(update_user_sql, &[&name, &email, &id]).await?;
+
     Ok(())
 }
 
-// Update
-pub async fn update_user(
-    client: &Client,
-    id: i32,
-    new_name: &str,
-) -> Result<(), tokio_postgres::Error> {
-    let query = "UPDATE users SET name = $1 WHERE id = $2";
-    let updated = client.execute(query, &[&new_name, &id]).await?;
-    println!("Updated {} user(s).", updated);
-    Ok(())
-}
+pub async fn delete_user(client: Arc<Mutex<Client>>, id: u32) -> Result<(), Box<dyn Error>> {
+    let delete_user_sql = "DELETE FROM users WHERE id = $1";
+    client.lock().await.execute(delete_user_sql, &[&id]).await?;
 
-// Delete
-pub async fn delete_user(client: &Client, id: i32) -> Result<(), tokio_postgres::Error> {
-    let query = "DELETE FROM users WHERE id = $1";
-    let deleted = client.execute(query, &[&id]).await?;
-    println!("Deleted {} user(s).", deleted);
     Ok(())
 }
