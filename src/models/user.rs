@@ -1,7 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-use tokio::sync::Mutex;
-use tokio_postgres::{Client, Error};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
@@ -16,6 +13,11 @@ pub struct LoginRequest {
     pub email: String,
     pub password: String,
 }
+
+/*
+use std::sync::Arc;
+use tokio::sync::Mutex;
+use tokio_postgres::{Client, Error};
 
 impl User {
     pub async fn find_by_email(
@@ -36,3 +38,4 @@ impl User {
         }))
     }
 }
+*/

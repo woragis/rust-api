@@ -1,16 +1,11 @@
-use crate::controllers::users::{
-    create_user_handler, delete_user_handler, read_user_handler, read_users_handler,
-    update_user_handler,
-};
-use actix_web::web;
+use crate::handlers::users::{create_user, delete_user, read_user, read_users, update_user};
+use actix_web::{web, Scope};
 
-pub fn configure_users_routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(
-        web::scope("/users")
-            .route("/", web::post().to(create_user_handler))
-            .route("/", web::get().to(read_users_handler))
-            .route("/id}", web::get().to(read_user_handler))
-            .route("/id}", web::put().to(update_user_handler))
-            .route("/id}", web::delete().to(delete_user_handler)),
-    );
+pub fn users_scope() -> Scope {
+    web::scope("/users")
+        .route("/", web::get().to(read_users))
+        .route("/", web::post().to(create_user))
+        .route("/{id}", web::get().to(read_user))
+        .route("/{id}", web::put().to(update_user))
+        .route("/{id}", web::delete().to(delete_user))
 }

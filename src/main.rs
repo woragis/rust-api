@@ -1,29 +1,36 @@
-mod controllers;
+use actix_web::{web::Data, App, HttpServer};
+use std::sync::Arc;
+
+mod config;
 mod db;
+mod handlers;
 mod models;
 mod routes;
-mod utils;
 
-use actix_web::{web, App, HttpServer};
 use db::connection::DbConnection;
-use routes::{auth::login, products::configure_products_routes, users::configure_users_routes};
-use std::sync::Arc;
+use db::tables::users::create_users_table;
+use routes::users::users_scope;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let db_url = "host=localhost user=postgres password=yourpassword dbname=rust_api";
     let db = Arc::new(
-        DbConnection::new(db_url)
+        DbConnection::new()
             .await
             .expect("Failed to connect to the database"),
     );
 
+    let client = db.get_client();
+    println!("DB Client was successfully received");
+
+    match create_users_table(client.clone()).await {
+        Ok(_) => println!("Users Table Created"),
+        Err(err) => eprintln!("Failed to create Users Table\nError: {}", err),
+    }
+
     HttpServer::new(move || {
         App::new()
-            .app_data(web::Data::new(db.clone())) // Share DB connection
-            .configure(configure_users_routes)
-            .configure(configure_products_routes)
-            .service(login)
+            .app_data(Data::new(client.clone()))
+            .service(users_scope())
     })
     .bind(("127.0.0.1", 8080))?
     .run()
