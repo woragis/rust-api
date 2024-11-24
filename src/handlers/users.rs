@@ -19,7 +19,6 @@ pub struct UpdateUserRequest {
     password: String,
 }
 
-// Create a new user
 pub async fn create_user(
     client: web::Data<Arc<Mutex<Client>>>,
     user: web::Json<CreateUserRequest>,
@@ -49,7 +48,6 @@ pub async fn create_user(
     }
 }
 
-// Read a user by ID
 pub async fn read_user(
     client: web::Data<Arc<Mutex<Client>>>,
     user_id: web::Path<i32>,
@@ -74,7 +72,6 @@ pub async fn read_user(
     }
 }
 
-// Read a user by ID
 pub async fn read_users(client: web::Data<Arc<Mutex<Client>>>) -> impl Responder {
     println!("Reading Users");
     let query = "SELECT id, name, email, password FROM users";
@@ -99,7 +96,6 @@ pub async fn read_users(client: web::Data<Arc<Mutex<Client>>>) -> impl Responder
     }
 }
 
-// Update a user by ID
 pub async fn update_user(
     client: web::Data<Arc<Mutex<Client>>>,
     user_id: web::Path<i32>,
@@ -125,7 +121,6 @@ pub async fn update_user(
     }
 }
 
-// Delete a user by ID
 pub async fn delete_user(
     client: web::Data<Arc<Mutex<Client>>>,
     user_id: web::Path<i32>,
