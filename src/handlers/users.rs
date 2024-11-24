@@ -17,7 +17,7 @@ pub async fn create_user(
         .await
     {
         Ok(row) => {
-            let id: i32 = row.get("id");
+            let id: u32 = row.get("id");
             println!("Created User '{}'", id);
             HttpResponse::Created().json(User {
                 id,
@@ -35,7 +35,7 @@ pub async fn create_user(
 
 pub async fn read_user(
     client: web::Data<Arc<Mutex<Client>>>,
-    user_id: web::Path<i32>,
+    user_id: web::Path<u32>,
 ) -> impl Responder {
     println!("Reading User '{}'", user_id);
     let query = "SELECT id, name, email, password FROM users WHERE id = $1";
@@ -83,7 +83,7 @@ pub async fn read_users(client: web::Data<Arc<Mutex<Client>>>) -> impl Responder
 
 pub async fn update_user(
     client: web::Data<Arc<Mutex<Client>>>,
-    user_id: web::Path<i32>,
+    user_id: web::Path<u32>,
     user: web::Json<UpdateUserRequest>,
 ) -> impl Responder {
     println!("Updating User '{}'", user_id);
@@ -108,7 +108,7 @@ pub async fn update_user(
 
 pub async fn delete_user(
     client: web::Data<Arc<Mutex<Client>>>,
-    user_id: web::Path<i32>,
+    user_id: web::Path<u32>,
 ) -> impl Responder {
     println!("Deleting User '{}'", user_id);
     let query = "DELETE FROM users WHERE id = $1";

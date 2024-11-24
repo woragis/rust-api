@@ -1,16 +1,18 @@
-use actix_web::{web::Data, App, HttpServer};
-use db::connection::DbConnection;
-use db::tables::products::create_products_table;
-use db::tables::users::create_users_table;
-use routes::products::products_routes;
-use routes::users::users_routes;
-use std::sync::Arc;
-
 mod config;
 mod db;
 mod handlers;
 mod models;
 mod routes;
+mod utils;
+
+use actix_web::{web::Data, App, HttpServer};
+use db::connection::DbConnection;
+use db::tables::products::create_products_table;
+use db::tables::users::create_users_table;
+use routes::auth::auth_routes;
+use routes::products::products_routes;
+use routes::users::users_routes;
+use std::sync::Arc;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -38,6 +40,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(Data::new(client.clone()))
             .service(users_routes())
             .service(products_routes())
+            .service(auth_routes())
     })
     .bind(("127.0.0.1", 8080))?
     .run()

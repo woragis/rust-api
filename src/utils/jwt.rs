@@ -1,24 +1,15 @@
-use jsonwebtoken::{encode, EncodingKey, Header};
-use serde::Serialize;
-use std::env;
+use crate::models::{auth::Claims, user::User};
+use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 
-#[derive(Debug, Serialize)]
-struct Claims {
-    sub: String,
-    user_id: i32,
-    exp: usize,
-}
-
-pub fn create_jwt_token(email: &str, user_id: i32) -> Result<String, jsonwebtoken::errors::Error> {
-    let secret = env::var("JWT_SECRET").unwrap_or_else(|_| "secret".into());
+pub fn create_jwt(user: &User, secret: &str) -> String {
     let expiration = chrono::Utc::now()
         .checked_add_signed(chrono::Duration::hours(24))
-        .expect("Invalid timestamp")
+        .expect("valid timestamp")
         .timestamp() as usize;
 
     let claims = Claims {
-        sub: email.to_owned(),
-        user_id,
+        sub: user.id.to_string(),
+        email: user.email.clone(),
         exp: expiration,
     };
 
@@ -27,4 +18,14 @@ pub fn create_jwt_token(email: &str, user_id: i32) -> Result<String, jsonwebtoke
         &claims,
         &EncodingKey::from_secret(secret.as_ref()),
     )
+    .expect("JWT encoding should succeed")
+}
+
+pub fn validate_jwt(token: &str, secret: &str) -> Result<Claims, jsonwebtoken::errors::Error> {
+    decode::<Claims>(
+        token,
+        &DecodingKey::from_secret(secret.as_ref()),
+        &Validation::new(Algorithm::HS256),
+    )
+    .map(|data| data.claims)
 }
