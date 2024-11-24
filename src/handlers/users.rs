@@ -1,4 +1,4 @@
-use crate::models::user::{CreateUserRequest, User, UpdateUserRequest};
+use crate::models::user::{CreateUserRequest, UpdateUserRequest, User};
 use actix_web::{web, HttpResponse, Responder};
 use std::sync::Arc;
 use tokio::sync::Mutex;
