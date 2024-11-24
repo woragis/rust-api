@@ -14,28 +14,16 @@ pub struct LoginRequest {
     pub password: String,
 }
 
-/*
-use std::sync::Arc;
-use tokio::sync::Mutex;
-use tokio_postgres::{Client, Error};
-
-impl User {
-    pub async fn find_by_email(
-        client: Arc<Mutex<Client>>,
-        email: &str,
-    ) -> Result<Option<Self>, Error> {
-        let find_user_by_email_sql = "SELECT * FROM users WHERE email = $1";
-        let row = client
-            .lock()
-            .await
-            .query_opt(find_user_by_email_sql, &[&email])
-            .await?;
-        Ok(row.map(|row| User {
-            id: row.get("id"),
-            name: row.get("id"),
-            email: row.get("id"),
-            password: row.get("id"),
-        }))
-    }
+#[derive(Deserialize)]
+pub struct CreateUserRequest {
+    pub name: String,
+    pub email: String,
+    pub password: String,
 }
-*/
+
+#[derive(Deserialize)]
+pub struct UpdateUserRequest {
+    pub name: String,
+    pub email: String,
+    pub password: String,
+}

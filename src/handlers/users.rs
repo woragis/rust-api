@@ -1,23 +1,8 @@
-use crate::models::user::User;
+use crate::models::user::{CreateUserRequest, User, UpdateUserRequest};
 use actix_web::{web, HttpResponse, Responder};
-use serde::Deserialize;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
-
-#[derive(Deserialize)]
-pub struct CreateUserRequest {
-    name: String,
-    email: String,
-    password: String,
-}
-
-#[derive(Deserialize)]
-pub struct UpdateUserRequest {
-    name: String,
-    email: String,
-    password: String,
-}
 
 pub async fn create_user(
     client: web::Data<Arc<Mutex<Client>>>,

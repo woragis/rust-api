@@ -12,7 +12,6 @@ pub struct DbConnection {
 impl DbConnection {
     pub async fn new() -> Result<Self, Box<dyn Error>> {
         println!("Connecting to DB....");
-        // let db_url = "host=localhost user=postgres password=yourpassword dbname=rust_api";
         let db_url = get_db_string();
         let (client, connection) = tokio_postgres::connect(&db_url, NoTls)
             .await

@@ -10,10 +10,10 @@ pub async fn create_product(
 ) -> impl Responder {
     println!("Creating Product");
     let query = "INSERT INTO products (
-    name, description, category, images, price,
-    discount, currency, stock, weight, dimensions,
-    tags, is_active) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id";
+        name, description, category, images, price,
+        discount, currency, stock, weight, dimensions,
+        tags, is_active) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id";
     match client
         .lock()
         .await
@@ -141,9 +141,9 @@ pub async fn update_product(
 ) -> impl Responder {
     println!("Updating product '{}'", product_id);
     let query = "UPDATE products SET
-    name = $1, description = $2, category = $3, images = $4, price = $5,
-    discount = $6, currency = $7, stock = $8, weight = $9,
-    dimensions = $10, tags = $11, is_active = $12 WHERE id = $13);";
+        name = $1, description = $2, category = $3, images = $4, price = $5,
+        discount = $6, currency = $7, stock = $8, weight = $9,
+        dimensions = $10, tags = $11, is_active = $12 WHERE id = $13);";
     match client
         .lock()
         .await
