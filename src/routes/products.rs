@@ -4,7 +4,7 @@ use crate::handlers::products::{
 use actix_web::{web, Scope};
 
 pub fn products_routes() -> Scope {
-    web::scope("/users")
+    web::scope("/products")
         .route("/", web::get().to(read_products))
         .route("/", web::post().to(create_product))
         .route("/{id}", web::get().to(read_product))

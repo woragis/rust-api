@@ -20,7 +20,7 @@ pub async fn create_products_table(client: Arc<Mutex<Client>>) -> Result<(), Box
         tags text[],
         is_active boolean default true,
         created_at timestamp default current_timestamp,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );";
     client
         .lock()

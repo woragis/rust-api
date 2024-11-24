@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS products (
     tags TEXT[],                                  -- Array of tags for search optimization
     is_active BOOLEAN DEFAULT TRUE,               -- Whether the product is active and available
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the product is created
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP -- Last update timestamp
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP-- Last update timestamp
 );
 
 SELECT * FROM products;
