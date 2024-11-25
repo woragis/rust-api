@@ -24,7 +24,7 @@ pub fn create_jwt(user: &User) -> String {
 }
 
 /// Middleware to verify the JWT token
-pub fn verify_jwt(req: &HttpRequest) -> Result<u32, HttpResponse> {
+pub fn verify_jwt(req: &HttpRequest) -> Result<i32, HttpResponse> {
     let auth_header = req.headers().get("Authorization");
 
     if let Some(header_value) = auth_header {

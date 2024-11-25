@@ -15,7 +15,7 @@ pub async fn create_user(
     println!("Testing if user is admin");
     match verify_admin(&client, &req).await {
         Ok(_) => println!("User is admin"),
-        Err(_) => println!("User was not admin"),
+        Err(_) => return HttpResponse::Unauthorized().body("You are not admin"),
     };
     println!("Creating User");
     let query = "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id";
@@ -45,13 +45,13 @@ pub async fn create_user(
 
 pub async fn read_user(
     client: web::Data<Arc<Mutex<Client>>>,
-    user_id: web::Path<u32>,
+    user_id: web::Path<i32>,
     req: HttpRequest,
 ) -> impl Responder {
     println!("Testing if user is admin");
     match verify_admin(&client, &req).await {
         Ok(_) => println!("User is admin"),
-        Err(_) => println!("User was not admin"),
+        Err(_) => return HttpResponse::Unauthorized().body("You are not admin"),
     };
     println!("Reading User '{}'", user_id);
     let query = "SELECT * FROM users WHERE id = $1";
@@ -78,7 +78,7 @@ pub async fn read_users(client: web::Data<Arc<Mutex<Client>>>, req: HttpRequest)
     println!("Testing if user is admin");
     match verify_admin(&client, &req).await {
         Ok(_) => println!("User is admin"),
-        Err(_) => println!("User was not admin"),
+        Err(_) => return HttpResponse::Unauthorized().body("You are not admin"),
     };
     println!("Reading Users");
     let query = "SELECT * FROM users";
@@ -106,14 +106,14 @@ pub async fn read_users(client: web::Data<Arc<Mutex<Client>>>, req: HttpRequest)
 
 pub async fn update_user(
     client: web::Data<Arc<Mutex<Client>>>,
-    user_id: web::Path<u32>,
+    user_id: web::Path<i32>,
     user: web::Json<UpdateUserRequest>,
     req: HttpRequest,
 ) -> impl Responder {
     println!("Testing if user is admin");
     match verify_admin(&client, &req).await {
         Ok(_) => println!("User is admin"),
-        Err(_) => println!("User was not admin"),
+        Err(_) => return HttpResponse::Unauthorized().body("You are not admin"),
     };
     println!("Updating User '{}'", user_id);
     let query = "UPDATE users SET name = $1, email = $2, password = $3, admin = $4 WHERE id = $5";
@@ -146,13 +146,13 @@ pub async fn update_user(
 
 pub async fn delete_user(
     client: web::Data<Arc<Mutex<Client>>>,
-    user_id: web::Path<u32>,
+    user_id: web::Path<i32>,
     req: HttpRequest,
 ) -> impl Responder {
     println!("Testing if user is admin");
     match verify_admin(&client, &req).await {
         Ok(_) => println!("User is admin"),
-        Err(_) => println!("User was not admin"),
+        Err(_) => return HttpResponse::Unauthorized().body("You are not admin"),
     };
     println!("Deleting User '{}'", user_id);
     let query = "DELETE FROM users WHERE id = $1";
