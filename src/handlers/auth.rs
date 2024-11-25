@@ -14,11 +14,15 @@ pub async fn register(
     println!("Encrypting Password");
     let hashed_password = hash_password(&form.password);
     println!("Registering User");
-    let query = "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id";
+    let query =
+        "INSERT INTO users (name, email, password, admin) VALUES ($1, $2, $3, $4) RETURNING id";
     match client
         .lock()
         .await
-        .query_one(query, &[&form.name, &form.email, &hashed_password])
+        .query_one(
+            query,
+            &[&form.name, &form.email, &hashed_password, &form.admin],
+        )
         .await
     {
         Ok(row) => {
@@ -29,6 +33,7 @@ pub async fn register(
                 name: form.name.clone(),
                 email: form.email.clone(),
                 password: form.password.clone(),
+                admin: form.admin,
             };
             let token = create_jwt(&user);
             HttpResponse::Created().json(RegisterResponse {
@@ -36,6 +41,7 @@ pub async fn register(
                 name: form.name.clone(),
                 email: form.email.clone(),
                 password: form.password.clone(),
+                admin: form.admin,
                 token,
             })
         }
@@ -58,6 +64,7 @@ pub async fn login(
                 name: row.get("name"),
                 email: row.get("email"),
                 password: row.get("password"),
+                admin: row.get("admin"),
             };
             println!("Found User '{}'", user.id);
             if verify_password(&user.password, &form.password) {
@@ -84,10 +91,12 @@ pub async fn profile(client: web::Data<Arc<Mutex<Client>>>, req: HttpRequest) ->
                         name: row.get("name"),
                         email: row.get("email"),
                         password: row.get("password"),
+                        admin: row.get("admin"),
                     };
                     HttpResponse::Accepted().json(user)
                 }
-                Err(err) => HttpResponse::InternalServerError().body(format!("User profile not found {}", err)),
+                Err(err) => HttpResponse::InternalServerError()
+                    .body(format!("User profile not found {}", err)),
             }
         }
         Err(_) => HttpResponse::InternalServerError().body("Error in profile"),

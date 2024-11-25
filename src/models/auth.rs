@@ -18,6 +18,7 @@ pub struct RegisterRequest {
     pub name: String,
     pub email: String,
     pub password: String,
+    pub admin: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -26,5 +27,6 @@ pub struct RegisterResponse {
     pub name: String,
     pub email: String,
     pub password: String,
+    pub admin: bool,
     pub token: String,
 }

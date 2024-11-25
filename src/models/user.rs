@@ -6,6 +6,7 @@ pub struct User {
     pub name: String,
     pub email: String,
     pub password: String,
+    pub admin: bool,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -13,6 +14,7 @@ pub struct CreateUserRequest {
     pub name: String,
     pub email: String,
     pub password: String,
+    pub admin: bool,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -20,4 +22,5 @@ pub struct UpdateUserRequest {
     pub name: String,
     pub email: String,
     pub password: String,
+    pub admin: bool,
 }

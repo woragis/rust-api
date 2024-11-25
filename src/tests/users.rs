@@ -57,6 +57,7 @@ pub async fn test_create_user_integration() {
         name: String::from("integration_test@example.com"),
         email: String::from("integration_test@example.com"),
         password: String::from("password123"),
+        admin: true,
     };
 
     #[allow(unused_variables)]

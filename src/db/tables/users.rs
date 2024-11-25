@@ -9,7 +9,8 @@ pub async fn create_users_table(client: Arc<Mutex<Client>>) -> Result<(), Box<dy
         id SERIAL PRIMARY KEY,
         name TEXT,
         email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL
+        password TEXT NOT NULL,
+        admin BOOL NOT NULL DEFAULT FALSE
     );";
     client
         .lock()
