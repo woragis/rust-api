@@ -1,8 +1,8 @@
-use crate::models::auth::{LoginRequest, RegisterRequest};
+use crate::models::auth::{LoginRequest, RegisterRequest, RegisterResponse};
 use crate::models::user::User;
 use crate::utils::bcrypt::{hash_password, verify_password};
-use crate::utils::jwt::create_jwt;
-use actix_web::{web, HttpResponse, Responder};
+use crate::utils::jwt::{create_jwt, verify_jwt};
+use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
@@ -22,13 +22,21 @@ pub async fn register(
         .await
     {
         Ok(row) => {
-            let id: u32 = row.get("id");
+            let id = row.get("id");
             println!("Registered User '{}'", id);
-            HttpResponse::Created().json(User {
+            let user = User {
                 id,
                 name: form.name.clone(),
                 email: form.email.clone(),
                 password: form.password.clone(),
+            };
+            let token = create_jwt(&user);
+            HttpResponse::Created().json(RegisterResponse {
+                id,
+                name: form.name.clone(),
+                email: form.email.clone(),
+                password: form.password.clone(),
+                token,
             })
         }
         Err(err) => {
@@ -53,8 +61,8 @@ pub async fn login(
             };
             println!("Found User '{}'", user.id);
             if verify_password(&user.password, &form.password) {
-                println!("User '{}' - Password wsa correct", user.id);
-                let token = create_jwt(&user, "oibanana");
+                println!("User '{}' - Logged in", user.id);
+                let token = create_jwt(&user);
                 HttpResponse::Ok().json(token)
             } else {
                 HttpResponse::Unauthorized().body("Invalid credentials")
@@ -62,5 +70,26 @@ pub async fn login(
         }
         Ok(None) => HttpResponse::Unauthorized().body("User not found"),
         Err(_) => HttpResponse::InternalServerError().body("Erro interno"),
+    }
+}
+
+pub async fn profile(client: web::Data<Arc<Mutex<Client>>>, req: HttpRequest) -> impl Responder {
+    match verify_jwt(&req) {
+        Ok(user_id) => {
+            let query = "SELECT * FROM users WHERE id = $1;";
+            match client.lock().await.query_one(query, &[&user_id]).await {
+                Ok(row) => {
+                    let user = User {
+                        id: row.get("id"),
+                        name: row.get("name"),
+                        email: row.get("email"),
+                        password: row.get("password"),
+                    };
+                    HttpResponse::Accepted().json(user)
+                }
+                Err(err) => HttpResponse::InternalServerError().body(format!("User profile not found {}", err)),
+            }
+        }
+        Err(_) => HttpResponse::InternalServerError().body("Error in profile"),
     }
 }
