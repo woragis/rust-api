@@ -6,7 +6,7 @@ use tokio_postgres::Client;
 pub async fn create_users_table(client: Arc<Mutex<Client>>) -> Result<(), Box<dyn Error>> {
     let create_users_table_sql = "
         CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
+        id BIGSERIAL PRIMARY KEY,
         name TEXT,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,

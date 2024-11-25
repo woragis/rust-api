@@ -6,20 +6,20 @@ use tokio_postgres::Client;
 pub async fn create_products_table(client: Arc<Mutex<Client>>) -> Result<(), Box<dyn Error>> {
     let create_users_table_sql = "
         CREATE TABLE IF NOT EXISTS products (
-        id bigserial primary key,
-        name varchar(255) not null,
-        description text,
-        category varchar(100),
-        images text[],
-        price decimal(10, 2) not null,
-        discount decimal(5, 2) default 0.00,
-        currency varchar(3) default 'usd',
-        stock int default 0,
-        weight decimal(10, 2),
-        dimensions jsonb,
-        tags text[],
-        is_active boolean default true,
-        created_at timestamp default current_timestamp,
+        id BIGSERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        category VARCHAR(100),
+        images TEXT[],
+        price DECIMAL(10, 2) NOT NULL,
+        discount DECIMAL(5, 2) DEFAULT 0.00,
+        currency VARCHAR(3) DEFAULT 'USD',
+        stock INT DEFAULT 0,
+        weight DECIMAL(10, 2),
+        dimensions JSONB,
+        tags TEXT[],
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );";
     client

@@ -45,7 +45,7 @@ pub async fn create_user(
 
 pub async fn read_user(
     client: web::Data<Arc<Mutex<Client>>>,
-    user_id: web::Path<i32>,
+    user_id: web::Path<u32>,
     req: HttpRequest,
 ) -> impl Responder {
     println!("Testing if user is admin");
@@ -74,9 +74,7 @@ pub async fn read_user(
     }
 }
 
-pub async fn read_users(client: web::Data<Arc<Mutex<Client>>>,
-    req: HttpRequest,
-) -> impl Responder {
+pub async fn read_users(client: web::Data<Arc<Mutex<Client>>>, req: HttpRequest) -> impl Responder {
     println!("Testing if user is admin");
     match verify_admin(&client, &req).await {
         Ok(_) => println!("User is admin"),
@@ -108,7 +106,7 @@ pub async fn read_users(client: web::Data<Arc<Mutex<Client>>>,
 
 pub async fn update_user(
     client: web::Data<Arc<Mutex<Client>>>,
-    user_id: web::Path<i32>,
+    user_id: web::Path<u32>,
     user: web::Json<UpdateUserRequest>,
     req: HttpRequest,
 ) -> impl Responder {
@@ -148,7 +146,7 @@ pub async fn update_user(
 
 pub async fn delete_user(
     client: web::Data<Arc<Mutex<Client>>>,
-    user_id: web::Path<i32>,
+    user_id: web::Path<u32>,
     req: HttpRequest,
 ) -> impl Responder {
     println!("Testing if user is admin");

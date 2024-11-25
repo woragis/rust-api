@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
-    pub sub: i32,
+    pub sub: u32,
     pub email: String,
     pub exp: usize,
 }
@@ -23,7 +23,7 @@ pub struct RegisterRequest {
 
 #[derive(Debug, Serialize)]
 pub struct RegisterResponse {
-    pub id: i32,
+    pub id: u32,
     pub name: String,
     pub email: String,
     pub password: String,
