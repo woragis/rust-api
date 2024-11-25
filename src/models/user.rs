@@ -8,14 +8,14 @@ pub struct User {
     pub password: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct CreateUserRequest {
     pub name: String,
     pub email: String,
     pub password: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct UpdateUserRequest {
     pub name: String,
     pub email: String,
