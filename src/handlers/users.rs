@@ -15,7 +15,10 @@ pub async fn create_user(
     println!("Testing if user is admin");
     match verify_admin(&client, &req).await {
         Ok(_) => println!("User is admin"),
-        Err(_) => return HttpResponse::Unauthorized().body("You are not admin"),
+        Err(err) => {
+            return HttpResponse::Unauthorized()
+                .body(format!("You are not admin\nError: {:?}", err))
+        }
     };
     println!("Creating User");
     let query = "INSERT INTO users (first_name, email, password) VALUES ($1, $2, $3) RETURNING id";
@@ -52,7 +55,10 @@ pub async fn read_user(
     println!("Testing if user is admin");
     match verify_admin(&client, &req).await {
         Ok(_) => println!("User is admin"),
-        Err(_) => return HttpResponse::Unauthorized().body("You are not admin"),
+        Err(err) => {
+            return HttpResponse::Unauthorized()
+                .body(format!("You are not admin\nError: {:?}", err))
+        }
     };
     println!("Reading User '{}'", user_id);
     let query = "SELECT * FROM users WHERE id = $1";
@@ -73,7 +79,10 @@ pub async fn read_users(client: web::Data<Arc<Mutex<Client>>>, req: HttpRequest)
     println!("Testing if user is admin");
     match verify_admin(&client, &req).await {
         Ok(_) => println!("User is admin"),
-        Err(_) => return HttpResponse::Unauthorized().body("You are not admin"),
+        Err(err) => {
+            return HttpResponse::Unauthorized()
+                .body(format!("You are not admin\nError: {:?}", err))
+        }
     };
     println!("Reading Users");
     let query = "SELECT * FROM users";
@@ -99,7 +108,10 @@ pub async fn update_user(
     println!("Testing if user is admin");
     match verify_admin(&client, &req).await {
         Ok(_) => println!("User is admin"),
-        Err(_) => return HttpResponse::Unauthorized().body("You are not admin"),
+        Err(err) => {
+            return HttpResponse::Unauthorized()
+                .body(format!("You are not admin\nError: {:?}", err))
+        }
     };
     println!("Updating User '{}'", user_id);
     let query = "
@@ -107,7 +119,7 @@ pub async fn update_user(
         first_name = $1, last_name = $2, email = $3,
         password = $4, role = $5, profile_picture = $6, phone_number = $7,
         is_verified = $8, last_login = $9, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $5";
+        WHERE id = $10";
     match client
         .lock()
         .await
@@ -148,13 +160,16 @@ pub async fn delete_user(
     println!("Testing if user is admin");
     match verify_admin(&client, &req).await {
         Ok(_) => println!("User is admin"),
-        Err(_) => return HttpResponse::Unauthorized().body("You are not admin"),
+        Err(err) => {
+            return HttpResponse::Unauthorized()
+                .body(format!("You are not admin\nError: {:?}", err))
+        }
     };
     println!("Deleting User '{}'", user_id);
     let query = "DELETE FROM users WHERE id = $1";
     match client.lock().await.execute(query, &[&*user_id]).await {
         Ok(rows_deleted) if rows_deleted > 0 => {
-            println!("Updated User '{}'", user_id);
+            println!("Deleted User '{}'", user_id);
             HttpResponse::Ok().body("User deleted")
         }
         Ok(_) => HttpResponse::NotFound().body(format!("User '{}' not found", user_id)),

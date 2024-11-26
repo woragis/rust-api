@@ -72,23 +72,7 @@ pub async fn read_product(
     let query = "SELECT * FROM products WHERE id = $1";
     match client.lock().await.query_one(query, &[&*product_id]).await {
         Ok(row) => {
-            let product = Product {
-                id: row.get("id"),
-                name: row.get("name"),
-                description: row.get("description"),
-                category: row.get("category"),
-                images: row.get("images"),
-                price: row.get("price"),
-                discount: row.get("discount"),
-                currency: row.get("currency"),
-                stock: row.get("stock"),
-                weight: row.get("weight"),
-                dimensions: row.get("dimensions"),
-                tags: row.get("tags"),
-                is_active: row.get("is_active"),
-                created_at: row.get("created_at"),
-                updated_at: row.get("updated_at"),
-            };
+            let product = Product::from_row(row);
             println!("Read Product '{}'", product.id);
             HttpResponse::Ok().json(product)
         }
@@ -104,26 +88,8 @@ pub async fn read_products(client: web::Data<Arc<Mutex<Client>>>) -> impl Respon
     let query = "SELECT * FROM products";
     match client.lock().await.query(query, &[]).await {
         Ok(rows) => {
-            let products: Vec<Product> = rows
-                .into_iter()
-                .map(|row| Product {
-                    id: row.get("id"),
-                    name: row.get("name"),
-                    description: row.get("description"),
-                    category: row.get("category"),
-                    images: row.get("images"),
-                    price: row.get("price"),
-                    discount: row.get("discount"),
-                    currency: row.get("currency"),
-                    stock: row.get("stock"),
-                    weight: row.get("weight"),
-                    dimensions: row.get("dimensions"),
-                    tags: row.get("tags"),
-                    is_active: row.get("is_active"),
-                    created_at: row.get("created_at"),
-                    updated_at: row.get("updated_at"),
-                })
-                .collect();
+            let products: Vec<Product> =
+                rows.into_iter().map(|row| Product::from_row(row)).collect();
             println!("Read Products");
             HttpResponse::Ok().json(products)
         }

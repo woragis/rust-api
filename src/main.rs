@@ -11,7 +11,7 @@ use db::connection::DbConnection;
 use db::tables::orders::create_orders_table;
 use db::tables::products::create_products_table;
 use db::tables::users::create_users_table;
-use routes::auth::auth_routes;
+use routes::auth::{auth_routes, profile_routes};
 use routes::orders::orders_routes;
 use routes::products::products_routes;
 use routes::users::users_routes;
@@ -49,6 +49,7 @@ async fn main() -> std::io::Result<()> {
             .service(users_routes())
             .service(products_routes())
             .service(auth_routes())
+            .service(profile_routes())
             .service(orders_routes())
     })
     .bind(("127.0.0.1", 8080))?

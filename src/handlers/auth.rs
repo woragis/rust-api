@@ -1,4 +1,4 @@
-use crate::models::auth::{LoginRequest, RegisterRequest};
+use crate::models::auth::{LoginRequest, RegisterRequest, UpdateProfileRequest};
 use crate::models::user::User;
 use crate::utils::bcrypt::{hash_password, verify_password};
 use crate::utils::jwt::{create_jwt, verify_jwt};
@@ -15,7 +15,7 @@ pub async fn register(
     let hashed_password = hash_password(&form.password);
     println!("Registering User");
     let query =
-        "INSERT INTO users (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) RETURNING id;";
+        "INSERT INTO users (first_name, last_name, email, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING id;";
     match client
         .lock()
         .await
@@ -26,6 +26,7 @@ pub async fn register(
                 &form.last_name,
                 &form.email,
                 &hashed_password,
+                &form.role,
             ],
         )
         .await
@@ -67,28 +68,77 @@ pub async fn login(
     }
 }
 
-pub async fn profile(client: web::Data<Arc<Mutex<Client>>>, req: HttpRequest) -> impl Responder {
+pub async fn read_profile(
+    client: web::Data<Arc<Mutex<Client>>>,
+    req: HttpRequest,
+) -> impl Responder {
     match verify_jwt(&req) {
         Ok(user_id) => {
             let query = "SELECT * FROM users WHERE id = $1;";
-            match client.lock().await.query_one(query, &[&user_id]).await {
-                Ok(row) => {
-                    let user = User {
-                        id: row.get("id"),
-                        first_name: row.get("first_name"),
-                        last_name: row.get("last_name"),
-                        email: row.get("email"),
-                        password: row.get("password"),
-                        role: row.get("role"),
-                        profile_picture: row.get("profile_picture"),
-                        phone_number: row.get("phone_number"),
-                        is_verified: row.get("is_verified"),
-                        last_login: row.get("last_login"),
-                        created_at: row.get("created_at"),
-                        updated_at: row.get("updated_at"),
-                    };
-                    HttpResponse::Accepted().json(user)
+            match client.lock().await.query_opt(query, &[&user_id]).await {
+                Ok(Some(row)) => {
+                    let user = User::from_row(row);
+                    HttpResponse::Ok().json(user)
                 }
+                Ok(None) => HttpResponse::NotFound().body("User not found"),
+                Err(err) => HttpResponse::InternalServerError()
+                    .body(format!("User profile not found {}", err)),
+            }
+        }
+        Err(_) => HttpResponse::InternalServerError().body("Error in profile"),
+    }
+}
+
+pub async fn update_profile(
+    client: web::Data<Arc<Mutex<Client>>>,
+    form: web::Json<UpdateProfileRequest>,
+    req: HttpRequest,
+) -> impl Responder {
+    match verify_jwt(&req) {
+        Ok(user_id) => {
+            let query = "UPDATE users SET
+            first_name = $1, last_name = $2, email = $3, password = $4,
+            profile_picture = $5, phone_number = $6, is_verified = $7, last_login = $8,
+            updated_at = CURRENT_TIMESTAMP WHERE id = $9;";
+            match client
+                .lock()
+                .await
+                .execute(
+                    query,
+                    &[
+                        &form.first_name,
+                        &form.last_name,
+                        &form.email,
+                        &form.password,
+                        &form.profile_picture,
+                        &form.phone_number,
+                        &form.is_verified,
+                        &form.last_login,
+                        &user_id,
+                    ],
+                )
+                .await
+            {
+                Ok(rows_updated) if rows_updated > 0 => HttpResponse::Ok().body("User updated"),
+                Ok(_) => HttpResponse::NotFound().body(format!("User '{}' not found", user_id)),
+                Err(err) => HttpResponse::InternalServerError()
+                    .body(format!("User profile not found {}", err)),
+            }
+        }
+        Err(_) => HttpResponse::InternalServerError().body("Error in profile"),
+    }
+}
+
+pub async fn delete_profile(
+    client: web::Data<Arc<Mutex<Client>>>,
+    req: HttpRequest,
+) -> impl Responder {
+    match verify_jwt(&req) {
+        Ok(user_id) => {
+            let query = "DELETE FROM users WHERE id = $1;";
+            match client.lock().await.execute(query, &[&user_id]).await {
+                Ok(rows_deleted) if rows_deleted > 0 => HttpResponse::Ok().body("Deleted User"),
+                Ok(_) => HttpResponse::NotFound().body(format!("User '{}' not found", user_id)),
                 Err(err) => HttpResponse::InternalServerError()
                     .body(format!("User profile not found {}", err)),
             }

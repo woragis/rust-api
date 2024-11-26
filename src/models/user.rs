@@ -1,3 +1,4 @@
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use tokio_postgres::Row;
@@ -39,12 +40,12 @@ pub struct User {
     pub email: String,
     pub password: String,
     pub role: String,
-    pub profile_picture: String,
-    pub phone_number: String,
+    pub profile_picture: Option<String>,
+    pub phone_number: Option<String>,
     pub is_verified: bool,
-    pub last_login: String,
-    pub created_at: String,
-    pub updated_at: String,
+    pub last_login: Option<NaiveDateTime>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 impl User {
@@ -95,7 +96,5 @@ pub struct UpdateUserRequest {
     pub profile_picture: String,
     pub phone_number: String,
     pub is_verified: bool,
-    pub last_login: String,
-    pub created_at: String,
-    pub updated_at: String,
+    pub last_login: NaiveDateTime,
 }

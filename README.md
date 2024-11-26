@@ -2,7 +2,6 @@ API in Rust
 
 Models
 
-- orders
 - blog_post
 - blog_post_like
 

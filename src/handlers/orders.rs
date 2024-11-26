@@ -44,13 +44,7 @@ pub async fn read_order(
     let query = "SELECT * FROM orders WHERE id = $1";
     match client.lock().await.query_one(query, &[&*order_id]).await {
         Ok(row) => {
-            let order = Order {
-                id: row.get("id"),
-                user_id: row.get("user_id"),
-                order_date: row.get("order_date"),
-                status: row.get("status"),
-                total_amount: row.get("total_amount"),
-            };
+            let order = Order::from_row(row);
             println!("Read Order '{}'", order.id);
             HttpResponse::Ok().json(order)
         }
@@ -66,16 +60,7 @@ pub async fn read_orders(client: web::Data<Arc<Mutex<Client>>>) -> impl Responde
     let query = "SELECT * FROM orders";
     match client.lock().await.query(query, &[]).await {
         Ok(rows) => {
-            let orders: Vec<Order> = rows
-                .into_iter()
-                .map(|row| Order {
-                    id: row.get("id"),
-                    user_id: row.get("user_id"),
-                    order_date: row.get("order_date"),
-                    status: row.get("status"),
-                    total_amount: row.get("total_amount"),
-                })
-                .collect();
+            let orders: Vec<Order> = rows.into_iter().map(|row| Order::from_row(row)).collect();
             println!("Read Orders");
             HttpResponse::Ok().json(orders)
         }
