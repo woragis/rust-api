@@ -54,10 +54,11 @@ pub async fn test_create_user_integration() {
     let client = reqwest::Client::new();
 
     let payload = CreateUserRequest {
-        name: String::from("integration_test@example.com"),
+        first_name: String::from("integration_test@example.com"),
+        last_name: String::from("integration_test@example.com"),
         email: String::from("integration_test@example.com"),
         password: String::from("password123"),
-        admin: true,
+        role: String::from("user"),
     };
 
     #[allow(unused_variables)]

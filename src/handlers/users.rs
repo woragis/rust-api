@@ -1,5 +1,5 @@
 use crate::{
-    models::user::{CreateUserRequest, UpdateUserRequest, User},
+    models::user::{CreateUserRequest, CreateUserResponse, UpdateUserRequest, User},
     utils::admin::verify_admin,
 };
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
@@ -18,22 +18,23 @@ pub async fn create_user(
         Err(_) => return HttpResponse::Unauthorized().body("You are not admin"),
     };
     println!("Creating User");
-    let query = "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id";
+    let query = "INSERT INTO users (first_name, email, password) VALUES ($1, $2, $3) RETURNING id";
     match client
         .lock()
         .await
-        .query_one(query, &[&user.name, &user.email, &user.password])
+        .query_one(query, &[&user.first_name, &user.email, &user.password])
         .await
     {
         Ok(row) => {
             let id = row.get("id");
             println!("Created User '{}'", id);
-            HttpResponse::Created().json(User {
+            HttpResponse::Created().json(CreateUserResponse {
                 id,
-                name: user.name.clone(),
+                first_name: user.first_name.clone(),
+                last_name: user.last_name.clone(),
                 email: user.email.clone(),
                 password: user.password.clone(),
-                admin: user.admin,
+                role: user.role.clone(),
             })
         }
         Err(err) => {
@@ -57,13 +58,7 @@ pub async fn read_user(
     let query = "SELECT * FROM users WHERE id = $1";
     match client.lock().await.query_one(query, &[&*user_id]).await {
         Ok(row) => {
-            let user = User {
-                id: row.get("id"),
-                name: row.get("name"),
-                email: row.get("email"),
-                password: row.get("password"),
-                admin: row.get("admin"),
-            };
+            let user = User::from_row(row);
             println!("Read User '{}'", user.id);
             HttpResponse::Ok().json(user)
         }
@@ -84,16 +79,7 @@ pub async fn read_users(client: web::Data<Arc<Mutex<Client>>>, req: HttpRequest)
     let query = "SELECT * FROM users";
     match client.lock().await.query(query, &[]).await {
         Ok(rows) => {
-            let users: Vec<User> = rows
-                .into_iter()
-                .map(|row| User {
-                    id: row.get("id"),
-                    name: row.get("name"),
-                    email: row.get("email"),
-                    password: row.get("password"),
-                    admin: row.get("admin"),
-                })
-                .collect();
+            let users: Vec<User> = rows.into_iter().map(|row| User::from_row(row)).collect();
             println!("Read Users");
             HttpResponse::Ok().json(users)
         }
@@ -116,17 +102,27 @@ pub async fn update_user(
         Err(_) => return HttpResponse::Unauthorized().body("You are not admin"),
     };
     println!("Updating User '{}'", user_id);
-    let query = "UPDATE users SET name = $1, email = $2, password = $3, admin = $4 WHERE id = $5";
+    let query = "
+        UPDATE users SET
+        first_name = $1, last_name = $2, email = $3,
+        password = $4, role = $5, profile_picture = $6, phone_number = $7,
+        is_verified = $8, last_login = $9, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $5";
     match client
         .lock()
         .await
         .execute(
             query,
             &[
-                &user.name,
+                &user.first_name,
+                &user.last_name,
                 &user.email,
                 &user.password,
-                &user.admin,
+                &user.role,
+                &user.profile_picture,
+                &user.phone_number,
+                &user.is_verified,
+                &user.last_login,
                 &*user_id,
             ],
         )

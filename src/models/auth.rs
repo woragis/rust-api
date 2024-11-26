@@ -13,20 +13,10 @@ pub struct LoginRequest {
     pub password: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct RegisterRequest {
-    pub name: String,
+    pub first_name: String,
+    pub last_name: String,
     pub email: String,
     pub password: String,
-    pub admin: bool,
-}
-
-#[derive(Debug, Serialize)]
-pub struct RegisterResponse {
-    pub id: i32,
-    pub name: String,
-    pub email: String,
-    pub password: String,
-    pub admin: bool,
-    pub token: String,
 }
