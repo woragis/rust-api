@@ -66,13 +66,13 @@ pub async fn create_product(
 
 pub async fn read_product(
     client: web::Data<Arc<Mutex<Client>>>,
-    product_id: web::Path<u32>,
+    product_id: web::Path<i32>,
 ) -> impl Responder {
     println!("Reading Product '{}'", product_id);
     let query = "SELECT * FROM products WHERE id = $1";
     match client.lock().await.query_one(query, &[&*product_id]).await {
         Ok(row) => {
-            let user = Product {
+            let product = Product {
                 id: row.get("id"),
                 name: row.get("name"),
                 description: row.get("description"),
@@ -89,8 +89,8 @@ pub async fn read_product(
                 created_at: row.get("created_at"),
                 updated_at: row.get("updated_at"),
             };
-            println!("Read Product '{}'", user.id);
-            HttpResponse::Ok().json(user)
+            println!("Read Product '{}'", product.id);
+            HttpResponse::Ok().json(product)
         }
         Err(err) => {
             eprintln!("Product not found: {}", err);
@@ -136,7 +136,7 @@ pub async fn read_products(client: web::Data<Arc<Mutex<Client>>>) -> impl Respon
 
 pub async fn update_product(
     client: web::Data<Arc<Mutex<Client>>>,
-    product_id: web::Path<u32>,
+    product_id: web::Path<i32>,
     product: web::Json<UpdateProductRequest>,
 ) -> impl Responder {
     println!("Updating product '{}'", product_id);
@@ -181,7 +181,7 @@ pub async fn update_product(
 
 pub async fn delete_product(
     client: web::Data<Arc<Mutex<Client>>>,
-    product_id: web::Path<u32>,
+    product_id: web::Path<i32>,
 ) -> impl Responder {
     println!("Deleting Product '{}'", product_id);
     let query = "DELETE FROM products WHERE id = $1";
