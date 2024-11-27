@@ -1,5 +1,6 @@
 use crate::models::user::{CreateUserRequest, CreateUserResponse, UpdateUserRequest, User};
 use crate::utils::admin::verify_admin;
+use crate::utils::bcrypt::hash_password;
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use log::{debug, error, info, warn};
 use std::sync::Arc;
@@ -21,11 +22,20 @@ pub async fn create_user(
     };
 
     debug!("Inserting new user into the database");
-    let query = "INSERT INTO users (first_name, email, password) VALUES ($1, $2, $3) RETURNING id";
+    let hashed_password = hash_password(&user.password);
+    let query = "INSERT INTO users (first_name, email, password, decrypted_password) VALUES ($1, $2, $3, $4) RETURNING id";
     match client
         .lock()
         .await
-        .query_one(query, &[&user.first_name, &user.email, &user.password])
+        .query_one(
+            query,
+            &[
+                &user.first_name,
+                &user.email,
+                &hashed_password,
+                &user.password,
+            ],
+        )
         .await
     {
         Ok(row) => {
@@ -121,12 +131,15 @@ pub async fn update_user(
     };
 
     debug!("Updating user with id={}", user_id);
+    let hashed_password = hash_password(&user.password);
     let query = "
         UPDATE users SET
         first_name = $1, last_name = $2, email = $3,
-        password = $4, role = $5, profile_picture = $6, phone_number = $7,
-        is_verified = $8, last_login = $9, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $10";
+        password = $4, decrypted_password = $5, role = $6,
+        blog_role = $7, store_role = $8, youtube_role = $9, fanfic_role = $10,
+        profile_picture = $11, phone_number = $12,
+        is_verified = $13, last_login = $14, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $15";
     match client
         .lock()
         .await
@@ -137,7 +150,12 @@ pub async fn update_user(
                 &user.last_name,
                 &user.email,
                 &user.password,
+                &hashed_password,
                 &user.role,
+                &user.blog_role,
+                &user.store_role,
+                &user.youtube_role,
+                &user.fanfic_role,
                 &user.profile_picture,
                 &user.phone_number,
                 &user.is_verified,

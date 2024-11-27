@@ -7,19 +7,19 @@ mod tests;
 mod utils;
 
 use actix_web::{web::Data, App, HttpServer};
+use chrono::Local;
+use colored::*;
 use db::connection::DbConnection;
 use db::tables::orders::create_orders_table;
 use db::tables::products::create_products_table;
 use db::tables::users::create_users_table;
-use fern::{Dispatch, log_file};
+use fern::{log_file, Dispatch};
 use log::{error, info};
 use routes::auth::{auth_routes, profile_routes};
 use routes::orders::orders_routes;
 use routes::products::products_routes;
 use routes::users::users_routes;
 use std::sync::Arc;
-use chrono::Local;
-use colored::*;
 
 fn setup_logger() -> Result<(), fern::InitError> {
     let file = log_file("log.log");
