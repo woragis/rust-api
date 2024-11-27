@@ -1,5 +1,7 @@
 use crate::models::product::{CreateProductRequest, Product, UpdateProductRequest};
-use actix_web::{web, HttpResponse, Responder};
+use crate::utils::admin::verify_admin;
+use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use log::{debug, error, info, warn};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
@@ -7,8 +9,18 @@ use tokio_postgres::Client;
 pub async fn create_product(
     client: web::Data<Arc<Mutex<Client>>>,
     product: web::Json<CreateProductRequest>,
+    req: HttpRequest,
 ) -> impl Responder {
-    println!("Creating Product");
+    debug!("Verifying admin privileges for creating a product");
+    match verify_admin(&client, &req).await {
+        Ok(_) => info!("Admin privileges verified"),
+        Err(err) => {
+            warn!("Admin verification failed: {:?}", err);
+            return HttpResponse::Unauthorized().body("You are not admin");
+        }
+    };
+
+    debug!("Inserting new product into the database");
     let query = "INSERT INTO products (
         name, description, category, images, price,
         discount, currency, stock, weight, dimensions,
@@ -38,7 +50,7 @@ pub async fn create_product(
     {
         Ok(row) => {
             let id = row.get("id");
-            println!("Created Product: '{}'", id);
+            info!("Successfully created product with id={}", id);
             HttpResponse::Created().json(Product {
                 id,
                 name: product.name.clone(),
@@ -58,7 +70,7 @@ pub async fn create_product(
             })
         }
         Err(err) => {
-            eprintln!("Failed to create product: {}", err);
+            error!("Failed to create product: {:?}", err);
             HttpResponse::InternalServerError().body("Failed to create product")
         }
     }
@@ -67,34 +79,63 @@ pub async fn create_product(
 pub async fn read_product(
     client: web::Data<Arc<Mutex<Client>>>,
     product_id: web::Path<i32>,
+    req: HttpRequest,
 ) -> impl Responder {
-    println!("Reading Product '{}'", product_id);
+    debug!("Verifying admin privileges for reading a product");
+    match verify_admin(&client, &req).await {
+        Ok(_) => info!("Admin privileges verified"),
+        Err(err) => {
+            warn!("Admin verification failed: {:?}", err);
+            return HttpResponse::Unauthorized().body("You are not admin");
+        }
+    };
+
+    debug!("Querying product with id={}", product_id);
     let query = "SELECT * FROM products WHERE id = $1";
-    match client.lock().await.query_one(query, &[&*product_id]).await {
-        Ok(row) => {
+    match client.lock().await.query_opt(query, &[&*product_id]).await {
+        Ok(Some(row)) => {
             let product = Product::from_row(row);
-            println!("Read Product '{}'", product.id);
+            info!("Successfully retrieved product with id={}", product.id);
             HttpResponse::Ok().json(product)
         }
+        Ok(None) => {
+            warn!("No product found with id={}", product_id);
+            HttpResponse::NotFound().body(format!("Product '{}' not found", product_id))
+        }
         Err(err) => {
-            eprintln!("Product not found: {}", err);
+            error!(
+                "Failed to retrieve product with id={}: {:?}",
+                product_id, err
+            );
             HttpResponse::NotFound().body("Product not found")
         }
     }
 }
 
-pub async fn read_products(client: web::Data<Arc<Mutex<Client>>>) -> impl Responder {
-    println!("Reading Products");
+pub async fn read_products(
+    client: web::Data<Arc<Mutex<Client>>>,
+    req: HttpRequest,
+) -> impl Responder {
+    debug!("Verifying admin privileges for reading all products");
+    match verify_admin(&client, &req).await {
+        Ok(_) => info!("Admin privileges verified"),
+        Err(err) => {
+            warn!("Admin verification failed: {:?}", err);
+            return HttpResponse::Unauthorized().body("You are not admin");
+        }
+    };
+
+    debug!("Querying all products from the database");
     let query = "SELECT * FROM products";
     match client.lock().await.query(query, &[]).await {
         Ok(rows) => {
             let products: Vec<Product> =
                 rows.into_iter().map(|row| Product::from_row(row)).collect();
-            println!("Read Products");
+            info!("Successfully retrieved all products");
             HttpResponse::Ok().json(products)
         }
         Err(err) => {
-            eprintln!("Error fetching products: {}", err);
+            error!("Failed to retrieve products: {:?}", err);
             HttpResponse::InternalServerError().body("Failed to fetch products")
         }
     }
@@ -104,8 +145,18 @@ pub async fn update_product(
     client: web::Data<Arc<Mutex<Client>>>,
     product_id: web::Path<i32>,
     product: web::Json<UpdateProductRequest>,
+    req: HttpRequest,
 ) -> impl Responder {
-    println!("Updating product '{}'", product_id);
+    debug!("Verifying admin privileges for updating a product");
+    match verify_admin(&client, &req).await {
+        Ok(_) => info!("Admin privileges verified"),
+        Err(err) => {
+            warn!("Admin verification failed: {:?}", err);
+            return HttpResponse::Unauthorized().body("You are not admin");
+        }
+    };
+
+    debug!("Updating product with id={}", product_id);
     let query = "UPDATE products SET
         name = $1, description = $2, category = $3, images = $4, price = $5,
         discount = $6, currency = $7, stock = $8, weight = $9,
@@ -134,12 +185,15 @@ pub async fn update_product(
         .await
     {
         Ok(rows_updated) if rows_updated > 0 => {
-            println!("Updated product '{}'", product_id);
+            info!("Successfully updated product with id={}", product_id);
             HttpResponse::Ok().body("Product updated")
         }
-        Ok(_) => HttpResponse::NotFound().body(format!("Product '{}' not found", product_id)),
+        Ok(_) => {
+            warn!("No product found with id={}", product_id);
+            HttpResponse::NotFound().body(format!("Product '{}' not found", product_id))
+        }
         Err(err) => {
-            eprintln!("Failed to update product: {}", err);
+            error!("Failed to update product with id={}: {:?}", product_id, err);
             HttpResponse::InternalServerError().body("Failed to update product")
         }
     }
@@ -148,17 +202,30 @@ pub async fn update_product(
 pub async fn delete_product(
     client: web::Data<Arc<Mutex<Client>>>,
     product_id: web::Path<i32>,
+    req: HttpRequest,
 ) -> impl Responder {
-    println!("Deleting Product '{}'", product_id);
+    debug!("Verifying admin privileges for deleting a product");
+    match verify_admin(&client, &req).await {
+        Ok(_) => info!("Admin privileges verified"),
+        Err(err) => {
+            warn!("Admin verification failed: {:?}", err);
+            return HttpResponse::Unauthorized().body("You are not admin");
+        }
+    };
+
+    debug!("Deleting Product with id={}", product_id);
     let query = "DELETE FROM products WHERE id = $1";
     match client.lock().await.execute(query, &[&*product_id]).await {
         Ok(rows_deleted) if rows_deleted > 0 => {
-            println!("Deleted Product '{}'", product_id);
+            info!("Successfully deleted product with id={}", product_id);
             HttpResponse::Ok().body("Product deleted")
         }
-        Ok(_) => HttpResponse::NotFound().body(format!("Product '{}' not found", product_id)),
+        Ok(_) => {
+            warn!("No product found with id={}", product_id);
+            HttpResponse::NotFound().body(format!("Product '{}' not found", product_id))
+        }
         Err(err) => {
-            eprintln!("Failed to delete product: {}", err);
+            error!("Failed to delete product with id={}: {:?}", product_id, err);
             HttpResponse::InternalServerError().body("Failed to delete product")
         }
     }

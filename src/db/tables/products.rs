@@ -1,9 +1,11 @@
+use log::debug;
 use std::error::Error;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
 pub async fn create_products_table(client: Arc<Mutex<Client>>) -> Result<(), Box<dyn Error>> {
+    debug!("Creating products table");
     let create_users_table_sql = "
         CREATE TABLE IF NOT EXISTS products (
         id BIGSERIAL PRIMARY KEY,

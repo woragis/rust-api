@@ -1,3 +1,4 @@
+use log::{debug, error, info};
 use std::error::Error;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -11,26 +12,26 @@ pub struct DbConnection {
 
 impl DbConnection {
     pub async fn new() -> Result<Self, Box<dyn Error>> {
-        println!("Connecting to DB....");
+        debug!("Estabilishing database connection");
         let db_url = get_db_string();
         let (client, connection) = tokio_postgres::connect(&db_url, NoTls)
             .await
             .expect("Error connecting to Database");
 
         tokio::spawn(async move {
-            if let Err(e) = connection.await {
-                eprintln!("Connection error: {}", e);
+            if let Err(err) = connection.await {
+                error!("Failed to connect to database: {:?}", err);
             }
         });
 
-        println!("Connected to DB!");
+        info!("Successfully connected to db!");
         Ok(Self {
             client: Arc::new(Mutex::new(client)),
         })
     }
 
     pub fn get_client(&self) -> Arc<Mutex<Client>> {
-        println!("Receiving DB client");
+        info!("Successfully received db client");
         self.client.clone()
     }
 }

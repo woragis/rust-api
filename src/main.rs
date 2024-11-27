@@ -11,14 +11,52 @@ use db::connection::DbConnection;
 use db::tables::orders::create_orders_table;
 use db::tables::products::create_products_table;
 use db::tables::users::create_users_table;
+use fern::{Dispatch, log_file};
+use log::{error, info};
 use routes::auth::{auth_routes, profile_routes};
 use routes::orders::orders_routes;
 use routes::products::products_routes;
 use routes::users::users_routes;
 use std::sync::Arc;
+use chrono::Local;
+use colored::*;
+
+fn setup_logger() -> Result<(), fern::InitError> {
+    let file = log_file("log.log");
+    // Configure fern logger with various logging outputs and formats
+    Dispatch::new()
+        .level(log::LevelFilter::Off)
+        .level_for("api", log::LevelFilter::Debug)
+        .format(|out, message, record| {
+            out.finish(format_args!(
+                "{}[{}] - {}",
+                Local::now().format("[%Y-%m-%d %H:%M:%S]"),
+                record.level().to_string().color(match record.level() {
+                    log::Level::Error => "red",
+                    log::Level::Warn => "yellow",
+                    log::Level::Info => "green",
+                    log::Level::Debug => "blue",
+                    log::Level::Trace => "magenta",
+                }),
+                // record.target(),
+                message
+            ))
+        })
+        .chain(std::io::stdout()) // Log to standard output
+        .chain(file?)
+        .apply()
+        .unwrap();
+
+    Ok(())
+}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    if let Err(err) = setup_logger() {
+        eprintln!("Failed to initialize logger: {:?}", err);
+        panic!("Failed to initialize logger: {:?}", err);
+    }
+
     let db = Arc::new(
         DbConnection::new()
             .await
@@ -26,21 +64,20 @@ async fn main() -> std::io::Result<()> {
     );
 
     let client = db.get_client();
-    println!("DB Client was successfully received");
 
     match create_users_table(client.clone()).await {
-        Ok(_) => println!("Users Table Created"),
-        Err(err) => eprintln!("Failed to create Users Table\nError: {}", err),
+        Ok(_) => info!("Users Table Created"),
+        Err(err) => error!("Failed to create users table: {:?}", err),
     }
 
     match create_products_table(client.clone()).await {
-        Ok(_) => println!("Products Table Created"),
-        Err(err) => eprintln!("Failed to create Products Table\nError: {}", err),
+        Ok(_) => info!("Products Table Created"),
+        Err(err) => error!("Failed to create products table: {:?}", err),
     }
 
     match create_orders_table(client.clone()).await {
-        Ok(_) => println!("Orders Table Created"),
-        Err(err) => eprintln!("Failed to create Orders Table\nError: {}", err),
+        Ok(_) => info!("Orders Table Created"),
+        Err(err) => error!("Failed to create orders table: {:?}", err),
     }
 
     HttpServer::new(move || {
