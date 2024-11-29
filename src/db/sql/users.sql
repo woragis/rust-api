@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     decrypted_password VARCHAR(255) NOT NULL,
     role ENUM('user', 'admin') DEFAULT 'user',
     blog_role ENUM('reader', 'writer') DEFAULT 'reader',
+    news_role ENUM('reader', 'writer', 'editor', 'admin') DEFAULT 'reader',
     store_role ENUM('customer', 'seller') DEFAULT 'customer',
     youtube_role ENUM('user', 'youtuber') DEFAULT 'user',
     fanfic_role ENUM('reader', 'writer') DEFAULT 'reader',
@@ -14,6 +15,15 @@ CREATE TABLE IF NOT EXISTS users (
     phone_number VARCHAR(20),
     is_verified BOOLEAN DEFAULT FALSE,
     last_login TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE writers (
+    writer_id BIGSERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id),
+    bio TEXT,
+    social_media_links JSONB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

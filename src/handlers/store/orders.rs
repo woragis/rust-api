@@ -1,5 +1,5 @@
 use crate::{
-    models::order::{CreateOrderRequest, Order},
+    models::store::order::{CreateOrderRequest, Order},
     utils::admin::verify_admin,
 };
 use actix_web::{web, HttpRequest, HttpResponse, Responder};

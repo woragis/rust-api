@@ -2,6 +2,9 @@ use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use tokio_postgres::Row;
+// use tokio_postgres::types::{FromSql, ToSql};
+// use serde_json::Value;
+// use tokio_postgres::Error;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum Role {
@@ -113,3 +116,44 @@ pub struct UpdateUserRequest {
     pub is_verified: bool,
     pub last_login: NaiveDateTime,
 }
+
+/*
+#[derive(Debug, Deserialize, Serialize)]
+pub enum Status {
+    Draft,
+    Published,
+    Archived,
+}
+
+impl FromStr for Status {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "draft" => Ok(Status::Draft),
+            "published" => Ok(Status::Published),
+            "archived" => Ok(Status::Archived),
+            _ => Err(format!("Unknown status: {}", s)),
+        }
+    }
+}
+
+impl FromSql for Status {
+    fn from_sql(ty: &tokio_postgres::types::Type, raw: &[u8]) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+        let raw_str = std::str::from_utf8(raw)?.to_owned();
+        Status::from_str(&raw_str).map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)
+    }
+}
+
+impl ToSql for Status {
+    fn to_sql(&self, ty: &tokio_postgres::types::Type, out: &mut Vec<u8>) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let value = match *self {
+            Status::Draft => "draft",
+            Status::Published => "published",
+            Status::Archived => "archived",
+        };
+        out.extend_from_slice(value.as_bytes());
+        Ok(())
+    }
+}
+*/

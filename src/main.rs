@@ -16,8 +16,7 @@ use db::tables::users::create_users_table;
 use fern::{log_file, Dispatch};
 use log::{error, info};
 use routes::auth::{auth_routes, profile_routes};
-use routes::orders::orders_routes;
-use routes::products::products_routes;
+use routes::store::{orders_routes, products_routes};
 use routes::users::users_routes;
 use std::sync::Arc;
 

@@ -1,4 +1,4 @@
-use crate::models::product::{CreateProductRequest, Product, UpdateProductRequest};
+use crate::models::store::product::{CreateProductRequest, Product, UpdateProductRequest};
 use crate::utils::admin::verify_admin;
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use log::{debug, error, info, warn};

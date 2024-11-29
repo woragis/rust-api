@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS posts (
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
     slug VARCHAR(255) UNIQUE NOT NULL,
-    status ENUM('draft', 'published') DEFAULT 'draft' NOT NULL,
+    status ENUM('draft', 'published', 'archived') DEFAULT 'draft' NOT NULL,
     published_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
