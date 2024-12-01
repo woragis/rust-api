@@ -33,8 +33,7 @@ pub fn create_jwt(user_id: i32, user_email: String) -> String {
     token
 }
 
-/// Middleware to verify the JWT token
-pub fn verify_jwt(req: &HttpRequest) -> Result<i32, HttpResponse> {
+pub fn verify_jwt(req: &HttpRequest) -> Option<i32> {
     let auth_header = req.headers().get("Authorization");
 
     if let Some(header_value) = auth_header {
@@ -55,23 +54,27 @@ pub fn verify_jwt(req: &HttpRequest) -> Result<i32, HttpResponse> {
                     Ok(data) => {
                         // Return the user ID
                         info!("JWT Successfully verified for user_id={}", data.claims.sub);
-                        Ok(data.claims.sub)
+                        Some(data.claims.sub)
                     }
                     Err(err) => {
                         error!("JWT Verification failed: {:?}", err);
-                        Err(HttpResponse::Unauthorized().body("Invalid token"))
+                        HttpResponse::Unauthorized().body("Invalid token");
+                        None
                     }
                 }
             } else {
                 warn!("Authorization format invalid, expected 'Bearer <token>'");
-                Err(HttpResponse::Unauthorized().body("Invalid authorization format"))
+                HttpResponse::Unauthorized().body("Invalid authorization format");
+                None
             }
         } else {
             error!("Failed to parse Authentication header");
-            Err(HttpResponse::Unauthorized().body("Invalid authorization header"))
+            HttpResponse::Unauthorized().body("Invalid authorization header");
+            None
         }
     } else {
         warn!("Authorization header is missing");
-        Err(HttpResponse::Unauthorized().body("Authorization header missing"))
+        HttpResponse::Unauthorized().body("Authorization header missing");
+        None
     }
 }
