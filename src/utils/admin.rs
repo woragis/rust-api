@@ -5,10 +5,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
-pub async fn verify_admin(
-    client: &web::Data<Arc<Mutex<Client>>>,
-    req: &HttpRequest,
-) -> bool {
+pub async fn verify_admin(client: &web::Data<Arc<Mutex<Client>>>, req: &HttpRequest) -> bool {
     debug!("Starting admin verification");
 
     let query = "SELECT role FROM users WHERE id = $1";
@@ -38,7 +35,7 @@ pub async fn verify_admin(
                     false
                 }
             }
-        },
+        }
         _ => false,
     }
 }
