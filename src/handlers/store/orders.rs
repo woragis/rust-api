@@ -1,6 +1,6 @@
 use crate::{
     models::store::order::{CreateOrderRequest, Order},
-    utils::admin::verify_admin,
+    utils::{admin::verify_admin, jwt::verify_jwt},
 };
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use log::{debug, error, info, warn};
@@ -11,7 +11,9 @@ use tokio_postgres::Client;
 pub async fn create_order(
     client: web::Data<Arc<Mutex<Client>>>,
     order: web::Json<CreateOrderRequest>,
+    req: HttpRequest,
 ) -> impl Responder {
+    let user_id = verify_jwt(&req);
     debug!("Inserting new order into the database");
     let query = "INSERT INTO orders (
         user_id, status, total_amount) VALUES (
@@ -19,7 +21,7 @@ pub async fn create_order(
     match client
         .lock()
         .await
-        .query_one(query, &[&order.user_id, &order.status, &order.total_amount])
+        .query_one(query, &[&user_id, &order.status, &order.total_amount])
         .await
     {
         Ok(row) => {
@@ -130,11 +132,8 @@ pub async fn delete_order(
 ) -> impl Responder {
     debug!("Verifying admin privileges for deleting a order");
     match verify_admin(&client, &req).await {
-        Ok(_) => info!("Admin privileges verified"),
-        Err(err) => {
-            warn!("Admin verification failed: {:?}", err);
-            return HttpResponse::Unauthorized().body("You are not admin");
-        }
+        true => info!("Admin privileges verified"),
+        false => warn!("Admin verification failed"),
     };
 
     debug!("Deleting order from database");

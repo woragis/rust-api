@@ -6,11 +6,18 @@ CREATE TABLE articles (
     summary VARCHAR(500),
     writer_id INT REFERENCES writers(writer_id),
     category_id INT REFERENCES categories(category_id),
-    published BOOLEAN DEFAULT FALSE,
+    published ENUM('draft', 'published', 'archived'),
     published_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+UPDATE articles SET
+title = $1, content = $2, summary = $3, category_id = $4,
+published = $5, updated_at = CURRENT_TIMESTAMP
+WHERE id = $6;
+
+DELETE FROM articles WHERE id = $1;
 
 -- Categories table to store article categories
 CREATE TABLE categories (

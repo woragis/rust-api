@@ -82,7 +82,7 @@ pub async fn read_profile(
 ) -> impl Responder {
     debug!("Reading user profile");
     match verify_jwt(&req) {
-        Ok(user_id) => {
+        Some(user_id) => {
             let query = "SELECT * FROM users WHERE id = $1;";
             match client.lock().await.query_opt(query, &[&user_id]).await {
                 Ok(Some(row)) => {
@@ -103,8 +103,8 @@ pub async fn read_profile(
                 }
             }
         }
-        Err(err) => {
-            error!("Failed to verify JWT: {:?}", err);
+        None => {
+            error!("Failed to verify JWT");
             HttpResponse::InternalServerError().body("Failed to verify token")
         }
     }
@@ -118,7 +118,7 @@ pub async fn update_profile(
     debug!("Updating user profile");
     let hashed_password = hash_password(&form.password);
     match verify_jwt(&req) {
-        Ok(user_id) => {
+        Some(user_id) => {
             let query = "
             UPDATE users SET
             first_name = $1, last_name = $2, email = $3,
@@ -161,8 +161,8 @@ pub async fn update_profile(
                 }
             }
         }
-        Err(err) => {
-            error!("Failed to verify JWT: {:?}", err);
+        None => {
+            error!("Failed to verify JWT");
             HttpResponse::InternalServerError().body("Failed to verify token")
         }
     }
@@ -174,7 +174,7 @@ pub async fn delete_profile(
 ) -> impl Responder {
     debug!("Deleting user profile");
     match verify_jwt(&req) {
-        Ok(user_id) => {
+        Some(user_id) => {
             let query = "DELETE FROM users WHERE id = $1;";
             match client.lock().await.execute(query, &[&user_id]).await {
                 Ok(rows_deleted) if rows_deleted > 0 => {
@@ -186,8 +186,8 @@ pub async fn delete_profile(
                     .body(format!("User profile not found {}", err)),
             }
         }
-        Err(err) => {
-            error!("Failed to verify JWT: {:?}", err);
+        None => {
+            error!("Failed to verify JWT");
             HttpResponse::InternalServerError().body("Failed to verify token")
         }
     }

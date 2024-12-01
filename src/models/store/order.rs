@@ -25,7 +25,6 @@ impl Order {
 
 #[derive(Deserialize)]
 pub struct CreateOrderRequest {
-    pub user_id: i32,           // Foreign key to the user
     pub status: Option<String>, // Optional status during creation
     pub total_amount: f64,      // Total cost of the order
 }

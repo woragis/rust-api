@@ -1,4 +1,4 @@
-use crate::models::user::{CreateUserRequest, CreateUserResponse, UpdateUserRequest, User, UserId};
+use crate::models::user::{CreateUserRequest, CreateUserResponse, UpdateUserRequest, User};
 use crate::utils::admin::verify_admin;
 use crate::utils::bcrypt::hash_password;
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
@@ -14,37 +14,27 @@ pub async fn create_user(
 ) -> impl Responder {
     debug!("Verifying admin privileges for creating a user");
     match verify_admin(&client, &req).await {
-        true => info!("Admin privileges verified"),
-        false => warn!("Admin verification failed"),
+        Ok(_) => info!("Admin privileges verified"),
+        Err(err) => {
+            warn!("Admin verification failed: {:?}", err);
+            return HttpResponse::Unauthorized().body("You are not admin");
+        }
     };
 
-    debug!("Inserting new user into the database");
+    debug!("Inserting new  + test +  into the database");
     let hashed_password = hash_password(&user.password);
-    let query = "INSERT INTO users (first_name, email, password, decrypted_password) VALUES ($1, $2, $3, $4) RETURNING id";
+    let query = "INSERT INTO  + test +  () VALUES () RETURNING id";
     match client
         .lock()
         .await
-        .query_one(
-            query,
-            &[
-                &user.first_name,
-                &user.email,
-                &hashed_password,
-                &user.password, // only in development state
-            ],
-        )
+        .query_one(query, &[])
         .await
     {
         Ok(row) => {
             let id = row.get("id");
-            info!("Successfully created user with id={}", id);
+            info!("Successfully created  + test +  with id={}", id);
             HttpResponse::Created().json(CreateUserResponse {
                 id,
-                first_name: user.first_name.clone(),
-                last_name: user.last_name.clone(),
-                email: user.email.clone(),
-                password: user.password.clone(),
-                role: user.role.clone(),
             })
         }
         Err(err) => {
@@ -54,19 +44,22 @@ pub async fn create_user(
     }
 }
 
-pub async fn read_user(
+pub async fn read_test(
     client: web::Data<Arc<Mutex<Client>>>,
-    user_id: web::Path<UserId>,
+    user_id: web::Path<i32>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for reading a user");
     match verify_admin(&client, &req).await {
-        true => info!("Admin privileges verified"),
-        false => warn!("Admin verification failed"),
+        Ok(_) => info!("Admin privileges verified"),
+        Err(err) => {
+            warn!("Admin verification failed: {:?}", err);
+            return HttpResponse::Unauthorized().body("You are not admin");
+        }
     };
 
     debug!("Querying user with id={}", user_id);
-    let query = "SELECT * FROM users WHERE id = $1";
+    let query = "SELECT * FROM  + test +  WHERE id = $1";
     match client.lock().await.query_opt(query, &[&*user_id]).await {
         Ok(Some(row)) => {
             let user = User::from_row(row);
@@ -75,7 +68,7 @@ pub async fn read_user(
         }
         Ok(None) => {
             warn!("No user found with id={}", user_id);
-            HttpResponse::NotFound().body(format!("User '{}' not found", user_id))
+            HttpResponse::NotFound().body(format!("User {} not found", user_id))
         }
         Err(err) => {
             error!("Failed to retrieve user with id={}: {:?}", user_id, err);
@@ -87,8 +80,11 @@ pub async fn read_user(
 pub async fn read_users(client: web::Data<Arc<Mutex<Client>>>, req: HttpRequest) -> impl Responder {
     debug!("Verifying admin privileges for reading all users");
     match verify_admin(&client, &req).await {
-        true => info!("Admin privileges verified"),
-        false => warn!("Admin verification failed"),
+        Ok(_) => info!("Admin privileges verified"),
+        Err(err) => {
+            warn!("Admin verification failed: {:?}", err);
+            return HttpResponse::Unauthorized().body("You are not admin");
+        }
     };
 
     debug!("Querying all users from the database");
@@ -108,14 +104,17 @@ pub async fn read_users(client: web::Data<Arc<Mutex<Client>>>, req: HttpRequest)
 
 pub async fn update_user(
     client: web::Data<Arc<Mutex<Client>>>,
-    user_id: web::Path<UserId>,
+    user_id: web::Path<i32>,
     user: web::Json<UpdateUserRequest>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for updating a user");
     match verify_admin(&client, &req).await {
-        true => info!("Admin privileges verified"),
-        false => warn!("Admin verification failed"),
+        Ok(_) => info!("Admin privileges verified"),
+        Err(err) => {
+            warn!("Admin verification failed: {:?}", err);
+            return HttpResponse::Unauthorized().body("You are not admin");
+        }
     };
 
     debug!("Updating user with id={}", user_id);
@@ -159,7 +158,7 @@ pub async fn update_user(
         }
         Ok(_) => {
             warn!("No user found with id={}", user_id);
-            HttpResponse::NotFound().body(format!("User '{}' not found", user_id))
+            HttpResponse::NotFound().body(format!("User {} not found", user_id))
         }
         Err(err) => {
             error!("Failed to update user with id={}: {:?}", user_id, err);
@@ -170,13 +169,16 @@ pub async fn update_user(
 
 pub async fn delete_user(
     client: web::Data<Arc<Mutex<Client>>>,
-    user_id: web::Path<UserId>,
+    user_id: web::Path<i32>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for deleting a user");
     match verify_admin(&client, &req).await {
-        true => info!("Admin privileges verified"),
-        false => warn!("Admin verification failed"),
+        Ok(_) => info!("Admin privileges verified"),
+        Err(err) => {
+            warn!("Admin verification failed: {:?}", err);
+            return HttpResponse::Unauthorized().body("You are not admin");
+        }
     };
 
     debug!("Deleting user with id={}", user_id);
@@ -188,7 +190,7 @@ pub async fn delete_user(
         }
         Ok(_) => {
             warn!("No user found with id={}", user_id);
-            HttpResponse::NotFound().body(format!("User '{}' not found", user_id))
+            HttpResponse::NotFound().body(format!("User {} not found", user_id))
         }
         Err(err) => {
             error!("Failed to delete user with id={}: {:?}", user_id, err);
@@ -196,3 +198,4 @@ pub async fn delete_user(
         }
     }
 }
+

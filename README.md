@@ -31,3 +31,23 @@ Boas Praticas
 - Criar documento no word e anexar como pdf
 - Criar diagramas com as relacoes do Banco de Dados
 - Criar graficos com os dados exatos
+
+# Projects
+
+## Video
+
+### Youtube + CosTV
+
+## Live
+
+### Twitch + Kicks
+
+## Picture
+
+### Instagram
+
+### Pinterest
+
+## Messages
+
+### Telegram + Whatsapp

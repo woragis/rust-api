@@ -1,3 +1,4 @@
+use crate::shared::types::Id;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
@@ -5,6 +6,8 @@ use tokio_postgres::Row;
 // use tokio_postgres::types::{FromSql, ToSql};
 // use serde_json::Value;
 // use tokio_postgres::Error;
+
+pub type UserId = Id;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum Role {
@@ -37,7 +40,7 @@ impl ToString for Role {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
-    pub id: i32,
+    pub id: UserId,
     pub first_name: String,
     pub last_name: String,
     pub email: String,
@@ -91,7 +94,7 @@ pub struct CreateUserRequest {
 
 #[derive(Serialize)]
 pub struct CreateUserResponse {
-    pub id: i32,
+    pub id: UserId,
     pub first_name: String,
     pub last_name: String,
     pub email: String,

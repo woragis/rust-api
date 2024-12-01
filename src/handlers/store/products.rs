@@ -13,11 +13,8 @@ pub async fn create_product(
 ) -> impl Responder {
     debug!("Verifying admin privileges for creating a product");
     match verify_admin(&client, &req).await {
-        Ok(_) => info!("Admin privileges verified"),
-        Err(err) => {
-            warn!("Admin verification failed: {:?}", err);
-            return HttpResponse::Unauthorized().body("You are not admin");
-        }
+        true => info!("Admin privileges verified"),
+        false => warn!("Admin verification failed"),
     };
 
     debug!("Inserting new product into the database");
@@ -83,11 +80,8 @@ pub async fn read_product(
 ) -> impl Responder {
     debug!("Verifying admin privileges for reading a product");
     match verify_admin(&client, &req).await {
-        Ok(_) => info!("Admin privileges verified"),
-        Err(err) => {
-            warn!("Admin verification failed: {:?}", err);
-            return HttpResponse::Unauthorized().body("You are not admin");
-        }
+        true => info!("Admin privileges verified"),
+        false => warn!("Admin verification failed"),
     };
 
     debug!("Querying product with id={}", product_id);
@@ -118,11 +112,8 @@ pub async fn read_products(
 ) -> impl Responder {
     debug!("Verifying admin privileges for reading all products");
     match verify_admin(&client, &req).await {
-        Ok(_) => info!("Admin privileges verified"),
-        Err(err) => {
-            warn!("Admin verification failed: {:?}", err);
-            return HttpResponse::Unauthorized().body("You are not admin");
-        }
+        true => info!("Admin privileges verified"),
+        false => warn!("Admin verification failed"),
     };
 
     debug!("Querying all products from the database");
@@ -149,11 +140,8 @@ pub async fn update_product(
 ) -> impl Responder {
     debug!("Verifying admin privileges for updating a product");
     match verify_admin(&client, &req).await {
-        Ok(_) => info!("Admin privileges verified"),
-        Err(err) => {
-            warn!("Admin verification failed: {:?}", err);
-            return HttpResponse::Unauthorized().body("You are not admin");
-        }
+        true => info!("Admin privileges verified"),
+        false => warn!("Admin verification failed"),
     };
 
     debug!("Updating product with id={}", product_id);
@@ -206,11 +194,8 @@ pub async fn delete_product(
 ) -> impl Responder {
     debug!("Verifying admin privileges for deleting a product");
     match verify_admin(&client, &req).await {
-        Ok(_) => info!("Admin privileges verified"),
-        Err(err) => {
-            warn!("Admin verification failed: {:?}", err);
-            return HttpResponse::Unauthorized().body("You are not admin");
-        }
+        true => info!("Admin privileges verified"),
+        false => warn!("Admin verification failed"),
     };
 
     debug!("Deleting Product with id={}", product_id);
