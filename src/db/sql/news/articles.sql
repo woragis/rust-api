@@ -4,9 +4,8 @@ CREATE TABLE articles (
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
     summary VARCHAR(500),
-    writer_id INT REFERENCES writers(writer_id),
-    category_id INT REFERENCES categories(category_id),
-    published ENUM('draft', 'published', 'archived'),
+    writer_id INT REFERENCES users(id),
+    -- category_id INT REFERENCES categories(category_id),
     published_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

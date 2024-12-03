@@ -11,6 +11,7 @@ use actix_web::{web::Data, App, HttpServer};
 use chrono::Local;
 use colored::*;
 use db::connection::DbConnection;
+use db::tables::news::create_news_articles_table;
 use db::tables::orders::create_orders_table;
 use db::tables::products::create_products_table;
 use db::tables::users::create_users_table;
@@ -82,6 +83,11 @@ async fn main() -> std::io::Result<()> {
     match create_orders_table(client.clone()).await {
         Ok(_) => info!("Orders Table Created"),
         Err(err) => error!("Failed to create orders table: {:?}", err),
+    }
+
+    match create_news_articles_table(client.clone()).await {
+        Ok(_) => info!("News Articles Table Created"),
+        Err(err) => error!("Failed to create news articles table: {:?}", err),
     }
 
     HttpServer::new(move || {

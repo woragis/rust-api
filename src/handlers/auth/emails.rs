@@ -50,29 +50,23 @@ pub async fn verify_email(
         Some(user_id) => {
             let query = "
             SELECT email FROM users WHERE id = $1;";
-            match client
-                .lock()
-                .await
-                .query_one(
-                    query,
-                    &[
-                        &user_id,
-                    ],
-                )
-                .await
-            {
+            match client.lock().await.query_one(query, &[&user_id]).await {
                 Ok(row) => {
                     let email: String = row.get("email");
                     let subject = "Verify your email";
                     let body = "hi bitch";
                     match send_email(&email, subject, body).await {
                         Ok(_) => {
-                            info!("Successfully sent email verification to user with email='{}'", email);
+                            info!(
+                                "Successfully sent email verification to user with email='{}'",
+                                email
+                            );
                             HttpResponse::Ok().body("Email verification sent")
-                        },
+                        }
                         Err(_) => {
                             error!("Error sending verification email");
-                            HttpResponse::InternalServerError().body("Error sending verification email")
+                            HttpResponse::InternalServerError()
+                                .body("Error sending verification email")
                         }
                     }
                 }

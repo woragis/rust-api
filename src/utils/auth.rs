@@ -9,7 +9,7 @@ pub async fn verify_ownership(
     client: &web::Data<Arc<Mutex<Client>>>,
     req: &HttpRequest,
     table: &str,
-    id: &str
+    id: &str,
 ) -> Result<bool, bool> {
     match verify_jwt(&req) {
         None => {

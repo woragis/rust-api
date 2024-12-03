@@ -1,1 +1,1 @@
-pub type Id = u32;
+pub type Id = i32;

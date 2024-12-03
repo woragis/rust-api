@@ -1,4 +1,6 @@
-use crate::models::store::product::{CreateProductRequest, Product, UpdateProductRequest};
+use crate::models::store::product::{
+    CreateProductRequest, Product, ProductId, UpdateProductRequest,
+};
 use crate::utils::admin::verify_admin;
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use log::{debug, error, info, warn};
@@ -46,7 +48,7 @@ pub async fn create_product(
         .await
     {
         Ok(row) => {
-            let id = row.get("id");
+            let id: ProductId = row.get("id");
             info!("Successfully created product with id={}", id);
             HttpResponse::Created().json(Product {
                 id,
@@ -75,7 +77,7 @@ pub async fn create_product(
 
 pub async fn read_product(
     client: web::Data<Arc<Mutex<Client>>>,
-    product_id: web::Path<i32>,
+    product_id: web::Path<ProductId>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for reading a product");
@@ -134,7 +136,7 @@ pub async fn read_products(
 
 pub async fn update_product(
     client: web::Data<Arc<Mutex<Client>>>,
-    product_id: web::Path<i32>,
+    product_id: web::Path<ProductId>,
     product: web::Json<UpdateProductRequest>,
     req: HttpRequest,
 ) -> impl Responder {
@@ -189,7 +191,7 @@ pub async fn update_product(
 
 pub async fn delete_product(
     client: web::Data<Arc<Mutex<Client>>>,
-    product_id: web::Path<i32>,
+    product_id: web::Path<ProductId>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for deleting a product");

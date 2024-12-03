@@ -41,7 +41,7 @@ pub struct NewsArticle {
     pub content: String,
     pub summary: Option<String>,
     pub writer_id: Option<NewsId>,
-    pub category_id: Option<NewsId>,
+    // pub category_id: Option<NewsId>,
     pub status: String,
     pub published_at: Option<NaiveDateTime>,
     pub created_at: NaiveDateTime,
@@ -56,7 +56,7 @@ impl NewsArticle {
             content: row.get("content"),
             summary: row.get("summary"),
             writer_id: row.get("writer_id"),
-            category_id: row.get("category_id"),
+            // category_id: row.get("category_id"),
             status: row.get("status"),
             published_at: row.get("published_at"),
             created_at: row.get("created_at"),
@@ -66,15 +66,22 @@ impl NewsArticle {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct CreateUpdateNewsArticleRequest {
+pub struct CreateNewsArticleRequest {
+    pub title: String,
+    pub content: String,
+    pub summary: Option<String>,
+    // pub category_id: Option<NewsId>,
+    pub status: String,
+    pub published_at: Option<NaiveDateTime>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct UpdateNewsArticleRequest {
     id: NewsId,
     pub title: String,
     pub content: String,
     pub summary: Option<String>,
-    pub writer_id: Option<NewsId>,
-    pub category_id: Option<NewsId>,
+    // pub category_id: Option<NewsId>,
     pub status: String,
     pub published_at: Option<NaiveDateTime>,
-    pub created_at: NaiveDateTime,
-    pub updated_at: NaiveDateTime,
 }
