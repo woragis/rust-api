@@ -1,5 +1,5 @@
 use super::jwt::verify_jwt;
-use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use actix_web::{web, HttpRequest, HttpResponse};
 use log::{error, info};
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -9,21 +9,24 @@ pub async fn verify_ownership(
     client: &web::Data<Arc<Mutex<Client>>>,
     req: &HttpRequest,
     table: &str,
-) -> Result<(), impl Responder> {
+    id: &str
+) -> Result<bool, bool> {
     match verify_jwt(&req) {
         None => {
-            return Err(HttpResponse::Unauthorized().body("You are not the owner of this article"))
+            HttpResponse::Unauthorized().body("You are not the owner of this article");
+            Err(false)
         }
         Some(writer_id) => {
-            let query = format!("SELECT * FROM {} WHERE id = $1;", table);
+            let query = format!("SELECT * FROM {} WHERE {} = $1;", table, id);
             match client.lock().await.query(&query, &[&writer_id]).await {
                 Ok(_) => {
                     info!("User ownership verified");
-                    Ok(())
+                    Ok(true)
                 }
                 Err(err) => {
                     error!("User cannot update article that is not his: {:?}", err);
-                    Err(HttpResponse::Unauthorized().body("You are not the owner of this article"))
+                    HttpResponse::Unauthorized().body("You are not the owner of this article");
+                    Err(false)
                 }
             }
         }
