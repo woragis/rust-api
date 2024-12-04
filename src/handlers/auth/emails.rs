@@ -17,7 +17,7 @@ pub async fn recover_password(
             let query = "SELECT * FROM users WHERE id = $1;";
             match client.lock().await.query_opt(query, &[&user_id]).await {
                 Ok(Some(row)) => {
-                    let user = User::from_row(row);
+                    let user: User = User::from_row(row);
                     info!("Successfully retrieved user profile with id={}", user_id);
                     HttpResponse::Ok().json(user)
                 }
@@ -48,13 +48,12 @@ pub async fn verify_email(
     debug!("Sending email verification");
     match verify_jwt(&req) {
         Some(user_id) => {
-            let query = "
-            SELECT email FROM users WHERE id = $1;";
+            let query: &str = "SELECT email FROM users WHERE id = $1;";
             match client.lock().await.query_one(query, &[&user_id]).await {
                 Ok(row) => {
                     let email: String = row.get("email");
-                    let subject = "Verify your email";
-                    let body = "hi bitch";
+                    let subject: &str = "Verify your email";
+                    let body: &str = "hi bitch";
                     match send_email(&email, subject, body).await {
                         Ok(_) => {
                             info!(

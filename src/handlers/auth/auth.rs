@@ -1,4 +1,5 @@
 use crate::models::auth::{LoginRequest, RegisterRequest};
+use crate::models::user::UserId;
 use crate::utils::bcrypt::{hash_password, verify_password};
 use crate::utils::jwt::create_jwt;
 use actix_web::{web, HttpResponse, Responder};
@@ -13,8 +14,8 @@ pub async fn register(
 ) -> impl Responder {
     debug!("Registering user");
     let hashed_password = hash_password(&form.password);
-    let query =
-        "INSERT INTO users (first_name, last_name, email, password, decrypted_password, role) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;";
+    let query: &str =
+        "INSERT INTO users (first_name, last_name, email, password, decrypted_password, role) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;";
     match client
         .lock()
         .await
@@ -32,9 +33,10 @@ pub async fn register(
         .await
     {
         Ok(row) => {
-            let id = row.get("id");
+            // let user: User = User::from_row(row);
+            let id: UserId = row.get("id");
             info!("Successfully registered user with id={}", id);
-            let token = create_jwt(id, form.email.clone());
+            let token: String = create_jwt(id, form.email.clone());
             HttpResponse::Created().json(token)
         }
         Err(err) => {
@@ -52,10 +54,10 @@ pub async fn login(
     let query = "SELECT id, email, password FROM users WHERE email = $1";
     match client.lock().await.query_opt(query, &[&form.email]).await {
         Ok(Some(row)) => {
-            let user_id = row.get("id");
-            let email = row.get("email");
-            let password = row.get("password");
-            if verify_password(password, &form.password) {
+            let user_id: UserId = row.get("id");
+            let email: String = row.get("email");
+            let password: String = row.get("password");
+            if verify_password(&password, &form.password) {
                 info!("Successfuly logged in user with id={}", user_id);
                 let token = create_jwt(user_id, email);
                 HttpResponse::Ok().json(token)

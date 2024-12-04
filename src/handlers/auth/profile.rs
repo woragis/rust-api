@@ -15,10 +15,10 @@ pub async fn read_profile(
     debug!("Reading user profile");
     match verify_jwt(&req) {
         Some(user_id) => {
-            let query = "SELECT * FROM users WHERE id = $1;";
+            let query: &str = "SELECT * FROM users WHERE id = $1;";
             match client.lock().await.query_opt(query, &[&user_id]).await {
                 Ok(Some(row)) => {
-                    let user = User::from_row(row);
+                    let user: User = User::from_row(row);
                     info!("Successfully retrieved user profile with id={}", user_id);
                     HttpResponse::Ok().json(user)
                 }
@@ -51,7 +51,7 @@ pub async fn update_profile(
     let hashed_password = hash_password(&form.password);
     match verify_jwt(&req) {
         Some(user_id) => {
-            let query = "
+            let query: &str = "
             UPDATE users SET
             first_name = $1, last_name = $2, email = $3,
             password = $4, decrypted_password = $5, role = $6,
@@ -107,7 +107,7 @@ pub async fn delete_profile(
     debug!("Deleting user profile");
     match verify_jwt(&req) {
         Some(user_id) => {
-            let query = "DELETE FROM users WHERE id = $1;";
+            let query: &str = "DELETE FROM users WHERE id = $1;";
             match client.lock().await.execute(query, &[&user_id]).await {
                 Ok(rows_deleted) if rows_deleted > 0 => {
                     info!("Successfully deleted profile");

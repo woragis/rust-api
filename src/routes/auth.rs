@@ -1,6 +1,6 @@
 use crate::{
     config::routes::{AUTH_ROUTES, PROFILE_ROUTES},
-    handlers::auth::auth::{register, login},
+    handlers::auth::auth::{login, register},
     handlers::auth::emails::{recover_password, verify_email},
     handlers::auth::profile::{delete_profile, read_profile, update_profile},
 };

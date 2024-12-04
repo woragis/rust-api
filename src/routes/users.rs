@@ -8,7 +8,7 @@ pub fn users_routes() -> Scope {
     web::scope(USERS_ROUTES)
         .route("/", web::get().to(read_users))
         .route("/", web::post().to(create_user))
-        .route("/{id}", web::get().to(read_user))
-        .route("/{id}", web::put().to(update_user))
-        .route("/{id}", web::delete().to(delete_user))
+        .route("/{user_id}", web::get().to(read_user))
+        .route("/{user_id}", web::put().to(update_user))
+        .route("/{user_id}", web::delete().to(delete_user))
 }

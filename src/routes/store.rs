@@ -14,15 +14,15 @@ pub fn products_routes() -> Scope {
     web::scope(PRODUCTS_ROUTES)
         .route("/", web::get().to(read_products))
         .route("/", web::post().to(create_product))
-        .route("/{id}", web::get().to(read_product))
-        .route("/{id}", web::put().to(update_product))
-        .route("/{id}", web::delete().to(delete_product))
+        .route("/{product_id}", web::get().to(read_product))
+        .route("/{product_id}", web::put().to(update_product))
+        .route("/{product_id}", web::delete().to(delete_product))
 }
 
 pub fn orders_routes() -> Scope {
     web::scope(ORDERS_ROUTES)
         .route("/", web::get().to(read_orders))
         .route("/", web::post().to(create_order))
-        .route("/{id}", web::get().to(read_order))
-        .route("/{id}", web::delete().to(delete_order))
+        .route("/{order_id}", web::get().to(read_order))
+        .route("/{order_id}", web::delete().to(delete_order))
 }

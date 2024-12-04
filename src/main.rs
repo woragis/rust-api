@@ -11,6 +11,7 @@ use actix_web::{web::Data, App, HttpServer};
 use chrono::Local;
 use colored::*;
 use db::connection::DbConnection;
+// use db::tables::enums::create_enum_types;
 use db::tables::news::create_news_articles_table;
 use db::tables::orders::create_orders_table;
 use db::tables::products::create_products_table;
@@ -70,6 +71,7 @@ async fn main() -> std::io::Result<()> {
 
     let client = db.get_client();
 
+    // match create_enum_types(client.clone()).await {Ok(_) => info!("Enums Types Created"),Err(err) => error!("Failed to create enum types: {:?}", err),}
     match create_users_table(client.clone()).await {
         Ok(_) => info!("Users Table Created"),
         Err(err) => error!("Failed to create users table: {:?}", err),

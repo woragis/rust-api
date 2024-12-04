@@ -1,5 +1,5 @@
 use crate::models::news::article::{
-    CreateNewsArticleRequest, NewsArticle, UpdateNewsArticleRequest,
+    CreateNewsArticleRequest, NewsArticle, UpdateNewsArticleRequest, UpdateNewsArticleStatusRequest,
 };
 use crate::models::news::NewsId;
 use crate::utils::admin::verify_admin;
@@ -12,7 +12,7 @@ use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
 const TABLE: &str = "news_articles";
-const ID: &str = "id";
+const OWNER_ID: &str = "writer_id";
 
 pub async fn create_article(
     client: web::Data<Arc<Mutex<Client>>>,
@@ -21,15 +21,19 @@ pub async fn create_article(
 ) -> impl Responder {
     debug!("Verifying admin privileges for creating a news article");
     match verify_admin(&client, &req).await {
+        // passes the news_role == 'writer' verification
         true => info!("Admin privileges verified"),
+
+        // needs to make the news_role == 'writer' verification
         false => warn!("Admin verification failed"),
     };
 
+    debug!("Verifying news_role for writing a new article");
     if let Some(writer_id) = verify_jwt(&req) {
+        // needs to see if user has news_role = writer
         debug!("Inserting new {} into the database", TABLE);
-        let query = format!(
-            "INSERT INTO {} (
-        title, content, summary, writer_id) VALUES ($1, $2, $3, $4) RETURNING id",
+        let query: String = format!(
+            "INSERT INTO {} (title, content, summary, writer_id, status) VALUES ($1, $2, $3, $4, $5) RETURNING id",
             TABLE
         );
         match client
@@ -42,6 +46,7 @@ pub async fn create_article(
                     &article.content,
                     &article.summary,
                     &writer_id,
+                    &article.status,
                 ],
             )
             .await
@@ -49,7 +54,7 @@ pub async fn create_article(
             Ok(row) => {
                 let id: NewsId = row.get("id");
                 info!("Successfully created news article with id={}", id);
-                HttpResponse::Created().json(NewsArticle::from_row(row))
+                HttpResponse::Created().json(id)
             }
             Err(err) => {
                 error!("Failed to create news article: {:?}", err);
@@ -66,10 +71,10 @@ pub async fn read_article(
     article_id: web::Path<NewsId>,
 ) -> impl Responder {
     debug!("Querying news article with id={}", article_id);
-    let query = format!("SELECT * FROM {} WHERE id = $1", TABLE);
+    let query: String = format!("SELECT * FROM {} WHERE id = $1", TABLE);
     match client.lock().await.query_opt(&query, &[&*article_id]).await {
         Ok(Some(row)) => {
-            let article = NewsArticle::from_row(row);
+            let article: NewsArticle = NewsArticle::from_row(row);
             info!("Successfully retrieved news article with id={}", article.id);
             HttpResponse::Ok().json(article)
         }
@@ -89,15 +94,15 @@ pub async fn read_article(
 
 pub async fn read_articles(client: web::Data<Arc<Mutex<Client>>>) -> impl Responder {
     debug!("Querying all news articles from the database");
-    let query = format!("SELECT * FROM {};", TABLE);
+    let query: String = format!("SELECT * FROM {};", TABLE);
     match client.lock().await.query(&query, &[]).await {
         Ok(rows) => {
-            let users: Vec<NewsArticle> = rows
+            let articles: Vec<NewsArticle> = rows
                 .into_iter()
                 .map(|row| NewsArticle::from_row(row))
                 .collect();
             info!("Successfully retrieved all news articles");
-            HttpResponse::Ok().json(users)
+            HttpResponse::Ok().json(articles)
         }
         Err(err) => {
             error!("Failed to retrieve news articles: {:?}", err);
@@ -117,10 +122,10 @@ pub async fn update_article(
         true => info!("Admin privileges verified"),
 
         false => {
-            warn!("Admin verification failed");
-            match verify_ownership(&client, &req, TABLE, ID).await {
-                Ok(_) => info!("User verified"),
-                Err(_) => return HttpResponse::Unauthorized().body("Hey"),
+            warn!("User is not admin");
+            match verify_ownership(&client, &req, TABLE, OWNER_ID).await {
+                Ok(_) => info!("User owns the article, thus can update it"),
+                Err(_) => return HttpResponse::Unauthorized().body("You cant edit someone's else article"),
             }
         }
     }
@@ -130,8 +135,8 @@ pub async fn update_article(
         "
         UPDATE {} SET
         title = $1, content = $2, summary = $3,
-        status = $4, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $5;",
+        updated_at = CURRENT_TIMESTAMP
+        WHERE id = $4;",
         TABLE
     );
     match client
@@ -143,7 +148,6 @@ pub async fn update_article(
                 &article.title,
                 &article.content,
                 &article.summary,
-                &article.status,
                 &*article_id,
             ],
         )
@@ -174,9 +178,9 @@ pub async fn delete_article(
         true => info!("Admin privileges verified"),
 
         false => {
-            warn!("Admin verification failed");
-            match verify_ownership(&client, &req, TABLE, ID).await {
-                Ok(_) => info!("User verified"),
+            warn!("User is not admin");
+            match verify_ownership(&client, &req, TABLE, OWNER_ID).await {
+                Ok(_) => info!("User is the article owner, thus can delete it"),
                 Err(_) => {
                     return HttpResponse::Unauthorized()
                         .body("You cant delete other people articles")
@@ -186,7 +190,7 @@ pub async fn delete_article(
     }
 
     debug!("Deleting article with id={}", article_id);
-    let query = format!("DELETE FROM {} WHERE id = $1", TABLE);
+    let query: String = format!("DELETE FROM {} WHERE id = $1", TABLE);
     match client.lock().await.execute(&query, &[&*article_id]).await {
         Ok(rows_deleted) if rows_deleted > 0 => {
             info!("Successfully deleted article with id={}", article_id);
@@ -199,6 +203,62 @@ pub async fn delete_article(
         Err(err) => {
             error!("Failed to delete article with id={}: {:?}", article_id, err);
             HttpResponse::InternalServerError().body("Failed to delete article")
+        }
+    }
+}
+
+pub async fn update_article_status(
+    client: web::Data<Arc<Mutex<Client>>>,
+    article_id: web::Path<NewsId>,
+    article: web::Json<UpdateNewsArticleStatusRequest>,
+    req: HttpRequest,
+) -> impl Responder {
+    // test if user is either:
+    // role == admin
+    // news_role == writer(owner) or news_role == editor or news_role == admin
+    debug!("Verifying admin privileges for updating a article's status");
+    match verify_admin(&client, &req).await {
+        true => info!("Admin privileges verified"),
+
+        false => {
+            warn!("User is not admin");
+            match verify_ownership(&client, &req, TABLE, OWNER_ID).await {
+                Ok(_) => info!("User owns the article, thus can update it's status it"),
+                Err(_) => return HttpResponse::Unauthorized().body("You cant edit someone's else article"),
+            }
+        }
+    }
+
+    debug!("Updating article's status with id={}", article_id);
+    let query = format!(
+        "
+        UPDATE {} SET status = $1, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $2;",
+        TABLE
+    );
+    match client
+        .lock()
+        .await
+        .execute(
+            &query,
+            &[
+                &article.status,
+                &*article_id,
+            ],
+        )
+        .await
+    {
+        Ok(rows_updated) if rows_updated > 0 => {
+            info!("Successfully updated article with id={}", article_id);
+            HttpResponse::Ok().body(format!("Article status updated to {}", article.status))
+        }
+        Ok(_) => {
+            warn!("No article found with id={}", article_id);
+            HttpResponse::NotFound().body(format!("Article '{}' not found", article_id))
+        }
+        Err(err) => {
+            error!("Failed to update article with id={}: {:?}", article_id, err);
+            HttpResponse::InternalServerError().body("Failed to update article's status")
         }
     }
 }

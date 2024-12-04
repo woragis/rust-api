@@ -36,7 +36,7 @@ pub async fn create_user(
         .await
     {
         Ok(row) => {
-            let id = row.get("id");
+            let id: UserId = row.get("id");
             info!("Successfully created user with id={}", id);
             HttpResponse::Created().json(CreateUserResponse {
                 id,
@@ -66,10 +66,10 @@ pub async fn read_user(
     };
 
     debug!("Querying user with id={}", user_id);
-    let query = "SELECT * FROM users WHERE id = $1";
+    let query: &str = "SELECT * FROM users WHERE id = $1";
     match client.lock().await.query_opt(query, &[&*user_id]).await {
         Ok(Some(row)) => {
-            let user = User::from_row(row);
+            let user: User = User::from_row(row);
             info!("Successfully retrieved user with id={}", user.id);
             HttpResponse::Ok().json(user)
         }
@@ -92,7 +92,7 @@ pub async fn read_users(client: web::Data<Arc<Mutex<Client>>>, req: HttpRequest)
     };
 
     debug!("Querying all users from the database");
-    let query = "SELECT * FROM users";
+    let query: &str = "SELECT * FROM users";
     match client.lock().await.query(query, &[]).await {
         Ok(rows) => {
             let users: Vec<User> = rows.into_iter().map(|row| User::from_row(row)).collect();
@@ -119,8 +119,8 @@ pub async fn update_user(
     };
 
     debug!("Updating user with id={}", user_id);
-    let hashed_password = hash_password(&user.password);
-    let query = "
+    let hashed_password: String = hash_password(&user.password);
+    let query: &str = "
         UPDATE users SET
         first_name = $1, last_name = $2, email = $3,
         password = $4, decrypted_password = $5, role = $6,
@@ -180,7 +180,7 @@ pub async fn delete_user(
     };
 
     debug!("Deleting user with id={}", user_id);
-    let query = "DELETE FROM users WHERE id = $1";
+    let query: &str = "DELETE FROM users WHERE id = $1";
     match client.lock().await.execute(query, &[&*user_id]).await {
         Ok(rows_deleted) if rows_deleted > 0 => {
             info!("Successfully deleted user with id={}", user_id);

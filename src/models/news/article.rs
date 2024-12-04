@@ -3,6 +3,7 @@ use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use tokio_postgres::Row;
+use crate::models::user::UserId;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum Status {
@@ -38,9 +39,9 @@ impl ToString for Status {
 pub struct NewsArticle {
     pub id: NewsId,
     pub title: String,
+    pub summary: String,
     pub content: String,
-    pub summary: Option<String>,
-    pub writer_id: Option<NewsId>,
+    pub writer_id: UserId,
     // pub category_id: Option<NewsId>,
     pub status: String,
     pub published_at: Option<NaiveDateTime>,
@@ -53,8 +54,8 @@ impl NewsArticle {
         NewsArticle {
             id: row.get("id"),
             title: row.get("title"),
-            content: row.get("content"),
             summary: row.get("summary"),
+            content: row.get("content"),
             writer_id: row.get("writer_id"),
             // category_id: row.get("category_id"),
             status: row.get("status"),
@@ -68,20 +69,21 @@ impl NewsArticle {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CreateNewsArticleRequest {
     pub title: String,
+    pub summary: String,
     pub content: String,
-    pub summary: Option<String>,
     // pub category_id: Option<NewsId>,
     pub status: String,
-    pub published_at: Option<NaiveDateTime>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct UpdateNewsArticleRequest {
-    id: NewsId,
     pub title: String,
-    pub content: String,
     pub summary: Option<String>,
+    pub content: String,
     // pub category_id: Option<NewsId>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct UpdateNewsArticleStatusRequest {
     pub status: String,
-    pub published_at: Option<NaiveDateTime>,
 }

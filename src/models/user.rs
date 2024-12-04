@@ -1,15 +1,16 @@
 use crate::shared::types::Id;
+use bytes::BytesMut;
 use chrono::NaiveDateTime;
+use postgres_types::{FromSql, ToSql};
 use serde::{Deserialize, Serialize};
+use std::error::Error;
 use std::str::FromStr;
+use tokio_postgres::types::{IsNull, Type};
 use tokio_postgres::Row;
-// use tokio_postgres::types::{FromSql, ToSql};
-// use serde_json::Value;
-// use tokio_postgres::Error;
 
 pub type UserId = Id;
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Role {
     #[serde(rename = "user")]
     User,
@@ -35,6 +36,55 @@ impl ToString for Role {
             Role::User => "user".to_string(),
             Role::Admin => "admin".to_string(),
         }
+    }
+}
+
+impl<'a> FromSql<'a> for Role {
+    fn from_sql(ty: &Type, raw: &'a [u8]) -> Result<Self, Box<dyn Error + Sync + Send>> {
+        if ty.name() != "role_enum" {
+            return Err(format!("Unexpected type: {}", ty.name()).into());
+        }
+        let value = std::str::from_utf8(raw)?;
+        match value {
+            "user" => Ok(Role::User),
+            "admin" => Ok(Role::Admin),
+            _ => Err(format!("Invalid enum value: {}", value).into()),
+        }
+    }
+
+    fn accepts(ty: &Type) -> bool {
+        ty.name() == "role_enum"
+    }
+}
+
+impl ToSql for Role {
+    fn to_sql(
+        &self,
+        ty: &Type,
+        out: &mut BytesMut,
+    ) -> Result<IsNull, Box<dyn std::error::Error + Sync + Send>> {
+        if ty.name() != "role_enum" {
+            return Err(format!("Unexpected type: {}", ty.name()).into());
+        }
+
+        let value = match self {
+            Role::User => "user",
+            Role::Admin => "admin",
+        };
+        out.extend_from_slice(value.as_bytes());
+        Ok(IsNull::No)
+    }
+
+    fn accepts(ty: &Type) -> bool {
+        ty.name() == "role_enum"
+    }
+
+    fn to_sql_checked(
+        &self,
+        ty: &Type,
+        out: &mut BytesMut,
+    ) -> Result<IsNull, Box<dyn std::error::Error + Sync + Send>> {
+        self.to_sql(ty, out)
     }
 }
 

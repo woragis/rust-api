@@ -1,11 +1,11 @@
-use crate::config::jwt::SECRET;
 use crate::models::auth::Claims;
+use crate::{config::jwt::SECRET, models::user::UserId};
 use actix_web::{HttpRequest, HttpResponse};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use log::{debug, error, info, warn};
 
-pub fn create_jwt(user_id: i32, user_email: String) -> String {
-    let expiration = chrono::Utc::now()
+pub fn create_jwt(user_id: UserId, user_email: String) -> String {
+    let expiration: usize = chrono::Utc::now()
         .checked_add_signed(chrono::Duration::hours(24))
         .expect("valid timestamp")
         .timestamp() as usize;
@@ -33,7 +33,7 @@ pub fn create_jwt(user_id: i32, user_email: String) -> String {
     token
 }
 
-pub fn verify_jwt(req: &HttpRequest) -> Option<i32> {
+pub fn verify_jwt(req: &HttpRequest) -> Option<UserId> {
     let auth_header = req.headers().get("Authorization");
 
     if let Some(header_value) = auth_header {
@@ -41,7 +41,7 @@ pub fn verify_jwt(req: &HttpRequest) -> Option<i32> {
 
         if let Ok(auth_str) = header_value.to_str() {
             if auth_str.starts_with("Bearer ") {
-                let token = &auth_str[7..]; // Strip "Bearer " prefix
+                let token: &str = &auth_str[7..]; // Strip "Bearer " prefix
                 debug!("Extracted token: {}", token);
 
                 let token_data = decode::<Claims>(
