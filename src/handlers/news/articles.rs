@@ -125,7 +125,10 @@ pub async fn update_article(
             warn!("User is not admin");
             match verify_ownership(&client, &req, TABLE, OWNER_ID).await {
                 Ok(_) => info!("User owns the article, thus can update it"),
-                Err(_) => return HttpResponse::Unauthorized().body("You cant edit someone's else article"),
+                Err(_) => {
+                    return HttpResponse::Unauthorized()
+                        .body("You cant edit someone's else article")
+                }
             }
         }
     }
@@ -224,13 +227,20 @@ pub async fn update_article_status(
             warn!("User is not admin");
             match verify_ownership(&client, &req, TABLE, OWNER_ID).await {
                 Ok(_) => info!("User owns the article, thus can update it's status it"),
-                Err(_) => return HttpResponse::Unauthorized().body("You cant edit someone's else article"),
+                Err(_) => {
+                    return HttpResponse::Unauthorized()
+                        .body("You cant edit someone's else article")
+                }
             }
         }
     }
 
     debug!("Updating article's status with id={}", article_id);
-    let update_string = if article.status == "published" { "published_at = CURRENT_TIMESTAMP," } else { "" };
+    let update_string = if article.status == "published" {
+        "published_at = CURRENT_TIMESTAMP,"
+    } else {
+        ""
+    };
     let query = format!(
         "UPDATE {} SET status = $1, {} updated_at = CURRENT_TIMESTAMP
         WHERE id = $2;",
@@ -239,13 +249,7 @@ pub async fn update_article_status(
     match client
         .lock()
         .await
-        .execute(
-            &query,
-            &[
-                &article.status,
-                &*article_id,
-            ],
-        )
+        .execute(&query, &[&article.status, &*article_id])
         .await
     {
         Ok(rows_updated) if rows_updated > 0 => {

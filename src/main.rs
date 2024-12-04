@@ -19,10 +19,7 @@ use db::tables::users::create_users_table;
 use fern::{log_file, Dispatch};
 use log::{error, info};
 use routes::auth::{auth_routes, profile_routes};
-use routes::news::{
-    news_articles_routes, news_articles_tags_routes, news_comments_routes, news_likes_routes,
-    news_tags_routes, news_views_routes,
-};
+use routes::news::{news_articles_routes, news_tags_routes};
 use routes::store::{orders_routes, products_routes};
 use routes::users::users_routes;
 use std::sync::Arc;
@@ -101,11 +98,7 @@ async fn main() -> std::io::Result<()> {
             .service(profile_routes())
             .service(orders_routes())
             .service(news_articles_routes())
-            .service(news_comments_routes())
             .service(news_tags_routes())
-            .service(news_articles_tags_routes())
-            .service(news_likes_routes())
-            .service(news_views_routes())
     })
     .bind(("127.0.0.1", 8080))?
     .run()

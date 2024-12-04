@@ -1,9 +1,9 @@
 use super::NewsId;
+use crate::models::user::UserId;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use tokio_postgres::Row;
-use crate::models::user::UserId;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum Status {

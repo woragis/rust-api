@@ -10,12 +10,7 @@ pub static ORDERS_ROUTES: &str = "/store/orders";
 // News Routes
 // Projects: G1 - Globo - MBL Noticias
 pub static NEWS_ARTICLES_ROUTES: &str = "/news/articles";
-pub static NEWS_COMMENTS_ROUTES: &str = "/news/comments";
 pub static NEWS_TAGS_ROUTES: &str = "/news/tags";
-pub static NEWS_ARTICLES_TAGS_ROUTES: &str = "/news/article-tags";
-pub static NEWS_LIKES_ROUTES: &str = "/news/likes";
-pub static NEWS_VIEWS_TAGS_ROUTES: &str = "/news/views";
-
 
 //  // Video Stream Routes
 //  // Projects: Youtube and Cos.tv
