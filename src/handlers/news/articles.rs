@@ -230,9 +230,9 @@ pub async fn update_article_status(
     }
 
     debug!("Updating article's status with id={}", article_id);
-    let update_string = if article.status == "published" { "published_at = CURRENT_TIMESTAMP" } else { "" };
+    let update_string = if article.status == "published" { "published_at = CURRENT_TIMESTAMP," } else { "" };
     let query = format!(
-        "UPDATE {} SET status = $1, updated_at = CURRENT_TIMESTAMP {}
+        "UPDATE {} SET status = $1, {} updated_at = CURRENT_TIMESTAMP
         WHERE id = $2;",
         TABLE, update_string
     );
