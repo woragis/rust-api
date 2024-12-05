@@ -1,9 +1,9 @@
 use crate::{
     config::routes::{NEWS_ARTICLES_ROUTES, NEWS_TAGS_ROUTES},
-    handlers::news::articles::{
+    handlers::news::{articles::{
         create_article, delete_article, read_article, read_articles, update_article,
         update_article_status,
-    },
+    }, comments::create_comment},
 };
 use actix_web::{web, Scope};
 
@@ -23,7 +23,7 @@ pub fn news_articles_routes() -> Scope {
         )
         .route(
             "/{article_id}/comments/{comment_id}",
-            web::post().to(create_article),
+            web::post().to(create_comment),
         )
         .route(
             "/{article_id}/comments/{comment_id}",
