@@ -32,22 +32,38 @@ Boas Praticas
 - Criar diagramas com as relacoes do Banco de Dados
 - Criar graficos com os dados exatos
 
-# Projects
+## Features
 
-## Video
+- [ ] - Password Manager
+- [ ] - Video Stream
+- [ ] - Live Stream
+- [ ] - Store
+- [ ] - Blog
+- [ ] - News
+- [ ] - Social Media **(Instagram Copy)**
+- [ ] - Social Media **(Pinterest Copy)**
+- [ ] - Social Media **(X Copy)**
+- [ ] - Chat Bot
+- [ ] - Chat Bot with Anime audio and image generation
+- [ ] - Message
+- [ ] - Notes
+- [ ] - Habit Tracker
 
-### Youtube + CosTV
+## Projects
 
-## Live
-
-### Twitch + Kicks
-
-## Picture
-
-### Instagram
-
-### Pinterest
-
-## Messages
-
-### Telegram + Whatsapp
+- [ ] - Ecommerce _Store_
+- [ ] - G1 _News_
+- [ ] - Blog _Blog_
+- [ ] - Password Manager _Password Manager_
+- [ ] - Youtube _Video Stream_
+- [ ] - Pinterest _Social Media_
+- [ ] - Instagram _Social Media_
+- [ ] - Kicks _Live Stream_
+- [ ] - Twitch.tv _Live Stream_
+- [ ] - Cos.Tv _Video Stream_
+- [ ] - Notes _Notes_
+- [ ] - Habit Tracker _Habit Tracker_
+- [ ] - Notes _Notes_
+- [ ] - Whatsapp _Message_
+- [ ] - Telegram _Message_
+- [ ] - Signal _Message_
