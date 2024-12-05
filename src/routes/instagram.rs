@@ -1,3 +1,9 @@
+//  // Instagram Social Media Routes
+//  // Projects: Instagram
+//  pub static INSTAGRAM_VIDEOS_ROUTES: &str = "/instagram/media";
+//  pub static INSTAGRAM_COMMENTS_ROUTES: &str = "/instagram/comments";
+//  pub static INSTAGRAM_LIKES_ROUTES: &str = "/instagram/likes";
+
 use crate::{
     handlers::auth::auth::{login, register},
     handlers::auth::emails::{recover_password, verify_email},
@@ -11,11 +17,4 @@ pub fn auth_routes() -> Scope {
         .route("/login", web::post().to(login))
         .route("/recover-password", web::get().to(recover_password))
         .route("/verify", web::get().to(verify_email))
-}
-
-pub fn profile_routes() -> Scope {
-    web::scope("/profile")
-        .route("/", web::get().to(read_profile))
-        .route("/", web::put().to(update_profile))
-        .route("/", web::delete().to(delete_profile))
 }
