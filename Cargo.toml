@@ -7,10 +7,15 @@ edition = "2021"
 
 [dependencies]
 actix-web = "4.9.0"
+aes = "0.8.4"
 argon2 = "0.5.3"
+base64 = "0.22.1"
 bcrypt = "0.16.0"
+block-padding = "0.3.3"
 bytes = "1.9.0"
+cbc = "0.1.2"
 chrono = { version = "0.4.38", features = ["serde"] }
+cipher = "0.4.4"
 colored = "2.1.0"
 dotenv = "0.15.0"
 faker_rand = "0.1.1"

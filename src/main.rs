@@ -8,53 +8,23 @@ mod tests;
 mod utils;
 
 use actix_web::{web::Data, App, HttpServer};
-use chrono::Local;
-use colored::*;
 use db::connection::DbConnection;
+use log::{error, info};
+use handlers::password_manager::encryption::{decrypt, encrypt, generate_key};
 // use db::tables::enums::create_enum_types;
 use db::tables::news::create_news_articles_table;
 use db::tables::orders::create_orders_table;
 use db::tables::products::create_products_table;
 use db::tables::users::create_users_table;
-use fern::{log_file, Dispatch};
-use log::{error, info};
 use routes::auth::{auth_routes, profile_routes};
 use routes::news::{news_articles_routes, news_tags_routes};
 use routes::store::{orders_routes, products_routes};
 use routes::users::users_routes;
+use utils::logger::setup_logger;
 use std::sync::Arc;
 
-fn setup_logger() -> Result<(), fern::InitError> {
-    let file = log_file("log.log");
-    // Configure fern logger with various logging outputs and formats
-    Dispatch::new()
-        .level(log::LevelFilter::Off)
-        .level_for("api", log::LevelFilter::Debug)
-        .format(|out, message, record| {
-            out.finish(format_args!(
-                "{}[{}] - {}",
-                Local::now().format("[%Y-%m-%d %H:%M:%S]"),
-                record.level().to_string().color(match record.level() {
-                    log::Level::Error => "red",
-                    log::Level::Warn => "yellow",
-                    log::Level::Info => "green",
-                    log::Level::Debug => "blue",
-                    log::Level::Trace => "magenta",
-                }),
-                // record.target(),
-                message
-            ))
-        })
-        .chain(std::io::stdout()) // Log to standard output
-        .chain(file?)
-        .apply()
-        .unwrap();
-
-    Ok(())
-}
-
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
+async fn not_main() -> std::io::Result<()> {
     if let Err(err) = setup_logger() {
         eprintln!("Failed to initialize logger: {:?}", err);
         panic!("Failed to initialize logger: {:?}", err);
@@ -103,4 +73,19 @@ async fn main() -> std::io::Result<()> {
     .bind(("127.0.0.1", 8080))?
     .run()
     .await
+}
+
+// Example usage
+fn main() {
+    // Example usage
+    let key = generate_key();
+    let data = "Hello, world!";
+
+    // Encrypt the data
+    let (encrypted_data, iv) = encrypt(data, &key);
+    println!("Encrypted: {}", encrypted_data);
+
+    // Decrypt the data
+    let decrypted_data = decrypt(&encrypted_data, &key, &iv.into());
+    println!("Decrypted: {}", decrypted_data);
 }
