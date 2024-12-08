@@ -1,15 +1,14 @@
-
-use crate::{
-    handlers::auth::auth::{login, register},
-    handlers::auth::emails::{recover_password, verify_email},
-    handlers::auth::profile::{delete_profile, read_profile, update_profile},
-};
 use actix_web::{web, Scope};
 
-pub fn auth_routes() -> Scope {
-    web::scope("/auth")
-        .route("/register", web::post().to(register))
-        .route("/login", web::post().to(login))
-        .route("/recover-password", web::get().to(recover_password))
-        .route("/verify", web::get().to(verify_email))
+use crate::handlers::password_manager::{
+    delete_data, get_data, get_single_data, insert_data, update_data,
+};
+
+pub fn password_manager_routes() -> Scope {
+    web::scope("/password-manager")
+        .route("/", web::get().to(get_data))
+        .route("/", web::post().to(insert_data))
+        .route("/{data_id}", web::get().to(get_single_data))
+        .route("/{data_id}", web::put().to(delete_data))
+        .route("/{data_id}", web::delete().to(update_data))
 }
