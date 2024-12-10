@@ -8,7 +8,7 @@
 
 ## Features
 
-- [ ] - Password Manager
+- [x] - Password Manager
 - [ ] - Video Stream
 - [ ] - Live Stream
 - [ ] - Store

@@ -168,7 +168,7 @@
 
 - [ ] - Account Model
 - [ ] - Accounts Handler
-- [ ] - Password Encryption Algorithm
+- [x] - Password Encryption Algorithm
 - [ ] - Accounts SQL
 - [ ] - Accounts Table
 
