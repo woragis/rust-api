@@ -1,84 +1,56 @@
+use aes::cipher::{generic_array::GenericArray, BlockDecrypt, BlockEncrypt, KeyInit};
 use aes::Aes256;
-use base64::{engine::general_purpose, Engine};
-use cbc::{Decryptor, Encryptor};
-use cipher::{generic_array::GenericArray, BlockDecryptMut, BlockSizeUser, KeyIvInit};
 use rand::Rng;
 
-pub fn generate_key() -> [u8; 32] {
+
+pub fn generate_key(key_size: usize) -> Vec<u8> {
+    match key_size {
+        16 | 24 | 32 => (), // Valid sizes for AES
+        _ => panic!("Invalid key size! Must be 16, 24, or 32 bytes."),
+    }
     let mut rng = rand::thread_rng();
-    let mut key = [0u8; 32];
-    rng.fill(&mut key);
-    key
+    (0..key_size).map(|_| rng.gen()).collect()
 }
 
-pub fn encrypt(data: &str, key: &[u8; 32]) -> (String, Vec<u8>) {
-    // Generate a random IV (Initialization Vector)
-    let iv = rand::thread_rng().gen::<[u8; 16]>();
-    let encryptor = Encryptor::<Aes256>::new(key.into(), &iv.into());
-
-    // Calculate padding
-    let block_size = Aes256::block_size();
-    let mut buffer = data.as_bytes().to_vec();
-
-    // Apply PKCS7 padding manually
-    let padding_len = block_size - (buffer.len() % block_size);
-    buffer.extend(vec![padding_len as u8; padding_len]); // Extend the buffer with padding bytes
-
-    // Convert the buffer into a vector of GenericArray blocks
-    let blocks: Vec<GenericArray<u8, <Aes256 as BlockSizeUser>::BlockSize>> = buffer
-        .chunks_exact(block_size)
-        .map(GenericArray::clone_from_slice)
-        .collect();
-    // Encrypt the blocks
-    let encrypted_blocks = blocks;
-    // Flatten the encrypted blocks back into a single Vec<u8>
-    let encrypted_buffer: Vec<u8> = encrypted_blocks
-        .iter()
-        .flat_map(|block| block.as_slice())
-        .cloned()
-        .collect();
-
-    // Return base64-encoded ciphertext and the IV
-    (
-        general_purpose::STANDARD.encode(&encrypted_buffer),
-        iv.to_vec(),
-    )
+fn pad_to_block_size(data: &[u8], block_size: usize) -> Vec<u8> {
+    let padding_length = block_size - (data.len() % block_size);
+    let mut padded = data.to_vec();
+    padded.extend(vec![padding_length as u8; padding_length]);
+    padded
 }
 
-pub fn decrypt(encrypted_data: &str, key: &[u8; 32], iv: &Vec<u8>) -> String {
-    // Decode the base64-encoded ciphertext
-    let encrypted_data = general_purpose::STANDARD
-        .decode(encrypted_data)
-        .expect("Base64 decode failed");
+fn remove_padding(data: &[u8]) -> Vec<u8> {
+    let padding_length = *data.last().unwrap() as usize;
+    data[..data.len() - padding_length].to_vec()
+}
 
-    // Convert the IV (Vec<u8>) into a GenericArray
-    let iv_array = GenericArray::from_slice(&iv);
 
-    // Set up the AES decryptor with the same key and IV
-    let mut decryptor = Decryptor::<Aes256>::new(GenericArray::from_slice(key), iv_array);
+pub fn encrypt(key: &[u8], data: &[u8], block_size: usize) -> Vec<u8> {
+    let padded_data = pad_to_block_size(data, block_size);
+    let cipher = Aes256::new(GenericArray::from_slice(key));
+    let mut encrypted_data = Vec::new();
+    for chunk in padded_data.chunks(16) {
+        let mut block = GenericArray::clone_from_slice(chunk);
+        cipher.encrypt_block(&mut block);
+        encrypted_data.extend_from_slice(&block);
+    }
+    encrypted_data
+}
 
-    // Convert the encrypted data into blocks
-    let block_size = Aes256::block_size();
-    let blocks: Vec<GenericArray<u8, <Aes256 as BlockSizeUser>::BlockSize>> = encrypted_data
-        .chunks_exact(block_size)
-        .map(GenericArray::clone_from_slice)
-        .collect();
 
-    // Decrypt the blocks
-    let mut decrypted_blocks = blocks.clone(); // Clone because blocks will be mutated
-    decryptor.decrypt_blocks_mut(&mut decrypted_blocks);
+pub fn decrypt(key: &[u8], data: &[u8]) -> Vec<u8> {
+    let cipher = Aes256::new(GenericArray::from_slice(key));
+    let mut decrypted_data = Vec::new();
 
-    // Flatten the decrypted blocks back into a single Vec<u8>
-    let decrypted_buffer: Vec<u8> = decrypted_blocks
-        .iter()
-        .flat_map(|block| block.as_slice())
-        .cloned()
-        .collect();
+    for chunk in data.chunks(16) {
+        let mut block = GenericArray::clone_from_slice(chunk);
+        cipher.decrypt_block(& mut block);
+        decrypted_data.extend_from_slice(&block);
+    }
+    remove_padding(&decrypted_data)
+}
 
-    // Remove padding (PKCS7)
-    let padding_len = *decrypted_buffer.last().unwrap() as usize;
-    let decrypted_data = &decrypted_buffer[..decrypted_buffer.len() - padding_len];
 
-    // Convert the decrypted data back into a string
-    String::from_utf8(decrypted_data.to_vec()).expect("Decryption failed")
+pub fn vec_to_string(data: &[u8]) -> String {
+    String::from_utf8_lossy(data).to_string()
 }
