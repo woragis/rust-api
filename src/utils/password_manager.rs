@@ -2,7 +2,6 @@ use aes::cipher::{generic_array::GenericArray, BlockDecrypt, BlockEncrypt, KeyIn
 use aes::Aes256;
 use rand::Rng;
 
-
 pub fn generate_key(key_size: usize) -> Vec<u8> {
     match key_size {
         16 | 24 | 32 => (), // Valid sizes for AES
@@ -24,7 +23,6 @@ fn remove_padding(data: &[u8]) -> Vec<u8> {
     data[..data.len() - padding_length].to_vec()
 }
 
-
 pub fn encrypt(key: &[u8], data: &[u8], block_size: usize) -> Vec<u8> {
     let padded_data = pad_to_block_size(data, block_size);
     let cipher = Aes256::new(GenericArray::from_slice(key));
@@ -37,19 +35,17 @@ pub fn encrypt(key: &[u8], data: &[u8], block_size: usize) -> Vec<u8> {
     encrypted_data
 }
 
-
 pub fn decrypt(key: &[u8], data: &[u8]) -> Vec<u8> {
     let cipher = Aes256::new(GenericArray::from_slice(key));
     let mut decrypted_data = Vec::new();
 
     for chunk in data.chunks(16) {
         let mut block = GenericArray::clone_from_slice(chunk);
-        cipher.decrypt_block(& mut block);
+        cipher.decrypt_block(&mut block);
         decrypted_data.extend_from_slice(&block);
     }
     remove_padding(&decrypted_data)
 }
-
 
 pub fn vec_to_string(data: &[u8]) -> String {
     String::from_utf8_lossy(data).to_string()

@@ -17,22 +17,18 @@ pub async fn create_comment(
     comment: web::Json<PostComment>,
     req: HttpRequest,
 ) -> impl Responder {
-    match verify_jwt(&req) {
-        Some(reader_id) => {
-            let query = format!(
-                "INSERT INTO {} (article_id, reader_id, content) VALUES ($1, $2, $3)",
-                TABLE
-            );
-            match client
-                .lock()
-                .await
-                .query_one(&query, &[&*article_id, &reader_id, &comment.content])
-                .await
-            {
-                Ok(_) => HttpResponse::Created().body("Created new comment"),
-                _ => HttpResponse::InternalServerError().body("Error creating comment"),
-            }
-        }
-        _ => HttpResponse::BadRequest().body("No jwt"),
+    let user_id = verify_jwt(&req).expect("oi");
+    let query = format!(
+        "INSERT INTO {} (article_id, reader_id, content) VALUES ($1, $2, $3)",
+        TABLE
+    );
+    match client
+        .lock()
+        .await
+        .query_one(&query, &[&*article_id, &user_id, &comment.content])
+        .await
+    {
+        Ok(_) => HttpResponse::Created().body("Created new comment"),
+        _ => HttpResponse::InternalServerError().body("Error creating comment"),
     }
 }

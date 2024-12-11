@@ -237,3 +237,7 @@
 - [ ] - Reviews Table
 
 ---
+
+## Refactor
+
+- [x] - Decrease "callback hell" occurrences

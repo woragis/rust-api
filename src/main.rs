@@ -75,21 +75,3 @@ async fn main() -> std::io::Result<()> {
     .run()
     .await
 }
-
-/*
-// Example usage
-fn main() {
-    // Example usage
-    let key = generate_key();
-    let data = "Hello, world!";
-
-    // Encrypt the data
-    let (encrypted_data, iv) = encrypt(data, &key);
-    println!("Encrypted: {}", encrypted_data);
-
-    // Decrypt the data
-    let decrypted_data = decrypt(&encrypted_data, &key, &iv.into());
-    println!("Decrypted: {}", decrypted_data);
-}
-
-*/

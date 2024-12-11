@@ -12,31 +12,24 @@ pub async fn recover_password(
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Reading user profile");
-    match verify_jwt(&req) {
-        Some(user_id) => {
-            let query = "SELECT * FROM users WHERE id = $1;";
-            match client.lock().await.query_opt(query, &[&user_id]).await {
-                Ok(Some(row)) => {
-                    let user: User = User::from_row(row);
-                    info!("Successfully retrieved user profile with id={}", user_id);
-                    HttpResponse::Ok().json(user)
-                }
-                Ok(None) => {
-                    warn!("No user profile found with id={}", user_id);
-                    HttpResponse::NotFound().body(format!("User '{}' not found", user_id))
-                }
-                Err(err) => {
-                    error!(
-                        "Failed to retrieve user profile with id={}: {:?}",
-                        user_id, err
-                    );
-                    HttpResponse::InternalServerError().body("Failed to read profile")
-                }
-            }
+    let user_id = verify_jwt(&req).expect("oi");
+    let query = "SELECT * FROM users WHERE id = $1;";
+    match client.lock().await.query_opt(query, &[&user_id]).await {
+        Ok(Some(row)) => {
+            let user: User = User::from_row(row);
+            info!("Successfully retrieved user profile with id={}", user_id);
+            HttpResponse::Ok().json(user)
         }
-        None => {
-            error!("Failed to verify JWT");
-            HttpResponse::InternalServerError().body("Failed to verify token")
+        Ok(None) => {
+            warn!("No user profile found with id={}", user_id);
+            HttpResponse::NotFound().body(format!("User '{}' not found", user_id))
+        }
+        Err(err) => {
+            error!(
+                "Failed to retrieve user profile with id={}: {:?}",
+                user_id, err
+            );
+            HttpResponse::InternalServerError().body("Failed to read profile")
         }
     }
 }
@@ -46,38 +39,30 @@ pub async fn verify_email(
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Sending email verification");
-    match verify_jwt(&req) {
-        Some(user_id) => {
-            let query: &str = "SELECT email FROM users WHERE id = $1;";
-            match client.lock().await.query_one(query, &[&user_id]).await {
-                Ok(row) => {
-                    let email: String = row.get("email");
-                    let subject: &str = "Verify your email";
-                    let body: &str = "hi bitch";
-                    match send_email(&email, subject, body).await {
-                        Ok(_) => {
-                            info!(
-                                "Successfully sent email verification to user with email='{}'",
-                                email
-                            );
-                            HttpResponse::Ok().body("Email verification sent")
-                        }
-                        Err(_) => {
-                            error!("Error sending verification email");
-                            HttpResponse::InternalServerError()
-                                .body("Error sending verification email")
-                        }
-                    }
+    let user_id = verify_jwt(&req).expect("oi");
+    let query: &str = "SELECT email FROM users WHERE id = $1;";
+    match client.lock().await.query_one(query, &[&user_id]).await {
+        Ok(row) => {
+            let email: String = row.get("email");
+            let subject: &str = "Verify your email";
+            let body: &str = "hi bitch";
+            match send_email(&email, subject, body).await {
+                Ok(_) => {
+                    info!(
+                        "Successfully sent email verification to user with email='{}'",
+                        email
+                    );
+                    HttpResponse::Ok().body("Email verification sent")
                 }
-                Err(err) => {
-                    error!("Error finding user with id={}: {:?}", user_id, err);
-                    HttpResponse::InternalServerError().body("Error finding user email")
+                Err(_) => {
+                    error!("Error sending verification email");
+                    HttpResponse::InternalServerError().body("Error sending verification email")
                 }
             }
         }
-        None => {
-            error!("Failed to send verifification email");
-            HttpResponse::InternalServerError().body("Failed to send verification email")
+        Err(err) => {
+            error!("Error finding user with id={}: {:?}", user_id, err);
+            HttpResponse::InternalServerError().body("Error finding user email")
         }
     }
 }

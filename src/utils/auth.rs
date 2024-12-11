@@ -10,25 +10,16 @@ pub async fn verify_ownership(
     req: &HttpRequest,
     table: &str,
     id: &str,
-) -> Result<bool, bool> {
-    match verify_jwt(&req) {
-        None => {
-            HttpResponse::Unauthorized().body("You are not the owner of this article");
-            Err(false)
-        }
-        Some(writer_id) => {
-            let query = format!("SELECT * FROM {} WHERE {} = $1;", table, id);
-            match client.lock().await.query(&query, &[&writer_id]).await {
-                Ok(_) => {
-                    info!("User ownership verified");
-                    Ok(true)
-                }
-                Err(err) => {
-                    error!("User cannot update article that is not his: {:?}", err);
-                    HttpResponse::Unauthorized().body("You are not the owner of this article");
-                    Err(false)
-                }
-            }
-        }
+) -> Result<bool, HttpResponse> {
+    let user_id = verify_jwt(&req)?;
+
+    let query = format!("SELECT * FROM {} WHERE {} = $1;", table, id);
+
+    if let Err(err) = client.lock().await.query(&query, &[&user_id]).await {
+        error!("Failed to verify jwt: {:?}", err);
+        Err(HttpResponse::InternalServerError().body("Error verifying user_id"))
+    } else {
+        info!("User ownership verified");
+        Ok(true)
     }
 }

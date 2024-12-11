@@ -26,55 +26,49 @@ pub fn create_jwt(user_id: UserId, user_email: String) -> String {
         &claims,
         &EncodingKey::from_secret(SECRET),
     )
-    .expect("JWT encoding should succeed");
+    .unwrap();
 
     info!("JWT successfully created for user_id={}", user_id);
 
     token
 }
 
-pub fn verify_jwt(req: &HttpRequest) -> Option<UserId> {
-    let auth_header = req.headers().get("Authorization");
-
-    if let Some(header_value) = auth_header {
-        debug!("Authorization header found: {:?}", header_value);
-
-        if let Ok(auth_str) = header_value.to_str() {
-            if auth_str.starts_with("Bearer ") {
-                let token: &str = &auth_str[7..]; // Strip "Bearer " prefix
-                debug!("Extracted token: {}", token);
-
-                let token_data = decode::<Claims>(
-                    token,
-                    &DecodingKey::from_secret(SECRET),
-                    &Validation::default(),
-                );
-
-                match token_data {
-                    Ok(data) => {
-                        // Return the user ID
-                        info!("JWT Successfully verified for user_id={}", data.claims.sub);
-                        Some(data.claims.sub)
-                    }
-                    Err(err) => {
-                        error!("JWT Verification failed: {:?}", err);
-                        HttpResponse::Unauthorized().body("Invalid token");
-                        None
-                    }
-                }
-            } else {
-                warn!("Authorization format invalid, expected 'Bearer <token>'");
-                HttpResponse::Unauthorized().body("Invalid authorization format");
-                None
-            }
-        } else {
-            error!("Failed to parse Authentication header");
-            HttpResponse::Unauthorized().body("Invalid authorization header");
-            None
-        }
-    } else {
+pub fn verify_jwt(req: &HttpRequest) -> Result<UserId, HttpResponse> {
+    let auth_header = req.headers().get("Authorization").ok_or_else(|| {
         warn!("Authorization header is missing");
-        HttpResponse::Unauthorized().body("Authorization header missing");
-        None
+        HttpResponse::Unauthorized().body("Authorization header missing")
+    })?;
+    debug!("Authorization header found: {:?}", auth_header);
+
+    let auth_str = auth_header
+        .to_str()
+        .map_err(|_| {
+            error!("Failed to parse Authorization header");
+            HttpResponse::Unauthorized().body("Invalid authorization header")
+        })
+        .expect("oi");
+
+    if !auth_str.starts_with("Bearer ") {
+        warn!("Authorization format invalid, expected 'Bearer <token>'");
+        return Err(HttpResponse::Unauthorized().body("Invalid authorization format"));
     }
+
+    let token = &auth_str[7..]; // Strip "Bearer " prefix
+    debug!("Extracted token: {}", token);
+
+    let token_data = decode::<Claims>(
+        token,
+        &DecodingKey::from_secret(SECRET),
+        &Validation::default(),
+    )
+    .map_err(|err| {
+        error!("JWT Verification failed: {:?}", err);
+        HttpResponse::Unauthorized().body("Invalid token")
+    })?;
+
+    info!(
+        "JWT Successfully verified for user_id={}",
+        token_data.claims.sub
+    );
+    Ok(token_data.claims.sub)
 }

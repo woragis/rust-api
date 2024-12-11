@@ -14,8 +14,9 @@ pub async fn create_user(
 ) -> impl Responder {
     debug!("Verifying admin privileges for creating a user");
     match verify_admin(&client, &req).await {
-        true => info!("Admin privileges verified"),
-        false => warn!("Admin verification failed"),
+        Ok(true) => info!("Admin privileges verified"),
+        Ok(false) => warn!("Admin verification failed"),
+        _ => error!("Error verifying admin"),
     };
 
     debug!("Inserting new user into the database");
@@ -61,8 +62,9 @@ pub async fn read_user(
 ) -> impl Responder {
     debug!("Verifying admin privileges for reading a user");
     match verify_admin(&client, &req).await {
-        true => info!("Admin privileges verified"),
-        false => warn!("Admin verification failed"),
+        Ok(true) => info!("Admin privileges verified"),
+        Ok(false) => warn!("Admin verification failed"),
+        _ => error!("Error verifying admin"),
     };
 
     debug!("Querying user with id={}", user_id);
@@ -87,8 +89,9 @@ pub async fn read_user(
 pub async fn read_users(client: web::Data<Arc<Mutex<Client>>>, req: HttpRequest) -> impl Responder {
     debug!("Verifying admin privileges for reading all users");
     match verify_admin(&client, &req).await {
-        true => info!("Admin privileges verified"),
-        false => warn!("Admin verification failed"),
+        Ok(true) => info!("Admin privileges verified"),
+        Ok(false) => warn!("Admin verification failed"),
+        _ => error!("Error verifying admin"),
     };
 
     debug!("Querying all users from the database");
@@ -114,8 +117,9 @@ pub async fn update_user(
 ) -> impl Responder {
     debug!("Verifying admin privileges for updating a user");
     match verify_admin(&client, &req).await {
-        true => info!("Admin privileges verified"),
-        false => warn!("Admin verification failed"),
+        Ok(true) => info!("Admin privileges verified"),
+        Ok(false) => warn!("Admin verification failed"),
+        _ => error!("Error verifying admin"),
     };
 
     debug!("Updating user with id={}", user_id);
@@ -175,8 +179,9 @@ pub async fn delete_user(
 ) -> impl Responder {
     debug!("Verifying admin privileges for deleting a user");
     match verify_admin(&client, &req).await {
-        true => info!("Admin privileges verified"),
-        false => warn!("Admin verification failed"),
+        Ok(true) => info!("Admin privileges verified"),
+        Ok(false) => warn!("Admin verification failed"),
+        _ => error!("Error verifying admin"),
     };
 
     debug!("Deleting user with id={}", user_id);

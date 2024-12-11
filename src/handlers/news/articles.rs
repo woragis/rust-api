@@ -22,47 +22,44 @@ pub async fn create_article(
     debug!("Verifying admin privileges for creating a news article");
     match verify_admin(&client, &req).await {
         // passes the news_role == 'writer' verification
-        true => info!("Admin privileges verified"),
-
+        Ok(true) => info!("Admin privileges verified"),
+        Ok(false) => warn!("Admin verification failed"),
         // needs to make the news_role == 'writer' verification
-        false => warn!("Admin verification failed"),
+        _ => error!("Error verifying admin"),
     };
 
     debug!("Verifying news_role for writing a new article");
-    if let Some(writer_id) = verify_jwt(&req) {
-        // needs to see if user has news_role = writer
-        debug!("Inserting new {} into the database", TABLE);
-        let query: String = format!(
+    let writer_id = verify_jwt(&req).expect("oi");
+    // needs to see if user has news_role = writer
+    debug!("Inserting new {} into the database", TABLE);
+    let query: String = format!(
             "INSERT INTO {} (title, content, summary, writer_id, status) VALUES ($1, $2, $3, $4, $5) RETURNING id",
             TABLE
         );
-        match client
-            .lock()
-            .await
-            .query_one(
-                &query,
-                &[
-                    &article.title,
-                    &article.content,
-                    &article.summary,
-                    &writer_id,
-                    &article.status,
-                ],
-            )
-            .await
-        {
-            Ok(row) => {
-                let id: NewsId = row.get("id");
-                info!("Successfully created news article with id={}", id);
-                HttpResponse::Created().json(id)
-            }
-            Err(err) => {
-                error!("Failed to create news article: {:?}", err);
-                HttpResponse::InternalServerError().body("Failed to create news article")
-            }
+    match client
+        .lock()
+        .await
+        .query_one(
+            &query,
+            &[
+                &article.title,
+                &article.content,
+                &article.summary,
+                &writer_id,
+                &article.status,
+            ],
+        )
+        .await
+    {
+        Ok(row) => {
+            let id: NewsId = row.get("id");
+            info!("Successfully created news article with id={}", id);
+            HttpResponse::Created().json(id)
         }
-    } else {
-        HttpResponse::InternalServerError().body("Failed to create news article")
+        Err(err) => {
+            error!("Failed to create news article: {:?}", err);
+            HttpResponse::InternalServerError().body("Failed to create news article")
+        }
     }
 }
 
@@ -119,9 +116,8 @@ pub async fn update_article(
 ) -> impl Responder {
     debug!("Verifying admin privileges for updating a article");
     match verify_admin(&client, &req).await {
-        true => info!("Admin privileges verified"),
-
-        false => {
+        Ok(true) => info!("Admin privileges verified"),
+        Ok(false) => {
             warn!("User is not admin");
             match verify_ownership(&client, &req, TABLE, OWNER_ID).await {
                 Ok(_) => info!("User owns the article, thus can update it"),
@@ -131,6 +127,7 @@ pub async fn update_article(
                 }
             }
         }
+        _ => error!("Error verifying admin"),
     }
 
     debug!("Updating article with id={}", article_id);
@@ -178,18 +175,18 @@ pub async fn delete_article(
 ) -> impl Responder {
     debug!("Verifying admin privileges for deleting a article");
     match verify_admin(&client, &req).await {
-        true => info!("Admin privileges verified"),
-
-        false => {
+        Ok(true) => info!("Admin privileges verified"),
+        Ok(false) => {
             warn!("User is not admin");
             match verify_ownership(&client, &req, TABLE, OWNER_ID).await {
-                Ok(_) => info!("User is the article owner, thus can delete it"),
+                Ok(_) => info!("User owns the article, thus can update it"),
                 Err(_) => {
                     return HttpResponse::Unauthorized()
-                        .body("You cant delete other people articles")
+                        .body("You cant edit someone's else article")
                 }
             }
         }
+        _ => error!("Error verifying admin"),
     }
 
     debug!("Deleting article with id={}", article_id);
@@ -221,18 +218,18 @@ pub async fn update_article_status(
     // news_role == writer(owner) or news_role == editor or news_role == admin
     debug!("Verifying admin privileges for updating a article's status");
     match verify_admin(&client, &req).await {
-        true => info!("Admin privileges verified"),
-
-        false => {
+        Ok(true) => info!("Admin privileges verified"),
+        Ok(false) => {
             warn!("User is not admin");
             match verify_ownership(&client, &req, TABLE, OWNER_ID).await {
-                Ok(_) => info!("User owns the article, thus can update it's status it"),
+                Ok(_) => info!("User owns the article, thus can update it"),
                 Err(_) => {
                     return HttpResponse::Unauthorized()
                         .body("You cant edit someone's else article")
                 }
             }
         }
+        _ => error!("Error verifying admin"),
     }
 
     debug!("Updating article's status with id={}", article_id);

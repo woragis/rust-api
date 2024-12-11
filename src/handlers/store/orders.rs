@@ -13,7 +13,7 @@ pub async fn create_order(
     order: web::Json<CreateOrderRequest>,
     req: HttpRequest,
 ) -> impl Responder {
-    let user_id = verify_jwt(&req);
+    let user_id = verify_jwt(&req).expect("oi");
     debug!("Inserting new order into the database");
     let query = "INSERT INTO orders (
         user_id, status, total_amount) VALUES (
@@ -132,8 +132,9 @@ pub async fn delete_order(
 ) -> impl Responder {
     debug!("Verifying admin privileges for deleting a order");
     match verify_admin(&client, &req).await {
-        true => info!("Admin privileges verified"),
-        false => warn!("Admin verification failed"),
+        Ok(true) => info!("Admin privileges verified"),
+        Ok(false) => warn!("Admin verification failed"),
+        _ => error!("Error verifying admin"),
     };
 
     debug!("Deleting order from database");
