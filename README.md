@@ -71,7 +71,7 @@ These projects are mostly frontend projects, some will be built for mobile
 - Notes
 - Password Manager
 
-## Models
+### Models
 
 - blog_post
 - blog_post_like
@@ -85,10 +85,36 @@ These projects are mostly frontend projects, some will be built for mobile
 - pinterest like social media (user with its posts and comments and pins and likes)
 - youtube like social media (videos, creator (user(id)), likes, comments)
 
-## Routes
+### Routes
 
-## Tests
+### Tests
 
 - faker _cria infinitos dados realistas_
 - reqwest _me permite testar as rotas_ e _criar unit tests_
 - criar rota que inicia ativa os tests feito pelo reqwest em parceria com o faker
+
+## Packages Description
+
+```toml
+[dependencies]
+actix-web = "4.9.0"                                     // web builder
+aes = "0.8.4"                                           // password_manager encrypt
+bcrypt = "0.16.0"                                       // user authentication
+bytes = "1.9.0"                                         // user model to_sql function
+chrono = { version = "0.4.38", features = ["serde"] }   // models date
+colored = "2.1.0"                                       // coloring log
+dotenv = "0.15.0"                                       // save private variables
+faker_rand = "0.1.1"                                    // tests
+fern = "0.7.0"                                          // logger
+hex = "0.4.3"                                           // decoder from bytes to string
+jsonwebtoken = "9.3.0"                                  // user authentication
+lettre = "0.11.10"                                      // auth and email
+log = "0.4.22"                                          // logger
+postgres-types = "0.2.8"                                // help models enum
+rand = "0.8.5"                                          // tests
+reqwest = "0.12.9"                                      // tests
+serde = { version = "1.0.215", features = ["derive"] }  // json http deserializer and serializer
+serde_json = "1.0.133"                                  // json http deserializer and serializer
+tokio = { version = "1.41.1", features = ["full"] }     // async
+tokio-postgres = { version = "0.7.12", features = ["with-chrono-0_4"] } // database connection
+```
