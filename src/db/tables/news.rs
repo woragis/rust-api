@@ -1,25 +1,31 @@
-use log::{debug, info, error};
+use log::{debug, error, info};
 use std::error::Error;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
+pub const ARTICLES_TABLE: &str = "news_articles";
+pub const COMMENTS_TABLE: &str = "news_comments";
+pub const LIKES_TABLE: &str = "news_articles";
+pub const VIEWS_TABLE: &str = "news_views";
+pub const TAGS_TABLE: &str = "news_tags";
+
 pub async fn create_news_tables(client: Arc<Mutex<Client>>) -> () {
     match create_news_articles_table(&client).await {
         Ok(_) => info!("Table 'news_articles' created"),
-        _ => error!("Table 'news_articles' not created")
+        _ => error!("Table 'news_articles' not created"),
     }
     match create_news_comments_table(&client).await {
         Ok(_) => info!("Table 'news_comments' created"),
-        _ => error!("Table 'news_comments' not created")
+        _ => error!("Table 'news_comments' not created"),
     };
     match create_news_likes_table(&client).await {
         Ok(_) => info!("Table 'news_likes' created"),
-        _ => error!("Table 'news_likes' not created")
+        _ => error!("Table 'news_likes' not created"),
     };
     match create_news_views_table(&client).await {
         Ok(_) => info!("Table 'news_views' created"),
-        _ => error!("Table 'news_views' not created")
+        _ => error!("Table 'news_views' not created"),
     };
 
     ()

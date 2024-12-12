@@ -11,7 +11,7 @@ use actix_web::{web::Data, App, HttpServer};
 use db::connection::DbConnection;
 use db::tables::news::create_news_tables;
 use db::tables::orders::create_orders_table;
-use db::tables::products::create_products_table;
+use db::tables::store::{create_products_table, create_store_tables};
 use db::tables::users::create_users_table;
 use log::{error, info};
 use routes::auth::{auth_routes, profile_routes};
@@ -44,16 +44,7 @@ async fn main() -> std::io::Result<()> {
         Err(err) => error!("Failed to create users table: {:?}", err),
     }
 
-    match create_products_table(client.clone()).await {
-        Ok(_) => info!("Products Table Created"),
-        Err(err) => error!("Failed to create products table: {:?}", err),
-    }
-
-    match create_orders_table(client.clone()).await {
-        Ok(_) => info!("Orders Table Created"),
-        Err(err) => error!("Failed to create orders table: {:?}", err),
-    }
-
+    create_store_tables(client.clone()).await;
     create_news_tables(client.clone()).await;
 
     HttpServer::new(move || {
