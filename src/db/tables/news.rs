@@ -1,12 +1,33 @@
-use log::debug;
+use log::{debug, info, error};
 use std::error::Error;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
-pub async fn create_news_articles_table(client: Arc<Mutex<Client>>) -> Result<(), Box<dyn Error>> {
+pub async fn create_news_tables(client: Arc<Mutex<Client>>) -> () {
+    match create_news_articles_table(&client).await {
+        Ok(_) => info!("Table 'news_articles' created"),
+        _ => error!("Table 'news_articles' not created")
+    }
+    match create_news_comments_table(&client).await {
+        Ok(_) => info!("Table 'news_comments' created"),
+        _ => error!("Table 'news_comments' not created")
+    };
+    match create_news_likes_table(&client).await {
+        Ok(_) => info!("Table 'news_likes' created"),
+        _ => error!("Table 'news_likes' not created")
+    };
+    match create_news_views_table(&client).await {
+        Ok(_) => info!("Table 'news_views' created"),
+        _ => error!("Table 'news_views' not created")
+    };
+
+    ()
+}
+
+async fn create_news_articles_table(client: &Arc<Mutex<Client>>) -> Result<(), Box<dyn Error>> {
     debug!("Creating news articles table");
-    // let create_enum = "CREATE TYPE news_articles_status AS ENUM ('draft', 'published', 'archived');";
+
     let create_table = "
         CREATE TABLE IF NOT EXISTS news_articles (
         id BIGSERIAL PRIMARY KEY,
@@ -14,14 +35,65 @@ pub async fn create_news_articles_table(client: Arc<Mutex<Client>>) -> Result<()
         content TEXT NOT NULL,
         summary VARCHAR(500),
         writer_id BIGINT REFERENCES users(id),
-        -- category_id INT REFERENCES categories(category_id),
+        -- category_id BIGINT REFERENCES categories(category_id),
         status VARCHAR(9),
         published_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT check_news_article_status CHECK (status IN ('draft', 'published', 'archived'))
     );";
-    // client.lock().await.execute(create_enum, &[]).await?;
+
     client.lock().await.execute(create_table, &[]).await?;
+
+    Ok(())
+}
+
+async fn create_news_comments_table(client: &Arc<Mutex<Client>>) -> Result<(), Box<dyn Error>> {
+    debug!("Creating news comments table");
+
+    let create_table = "
+        CREATE TABLE IF NOT EXISTS news_comments (
+        id BIGSERIAL PRIMARY KEY,
+        article_id BIGINT REFERENCES news_articles(id),
+        reader_id BIGINT REFERENCES users(id),
+        writer_id BIGINT REFERENCES users(id),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );";
+
+    client.lock().await.execute(create_table, &[]).await?;
+
+    Ok(())
+}
+
+async fn create_news_likes_table(client: &Arc<Mutex<Client>>) -> Result<(), Box<dyn Error>> {
+    debug!("Creating news likes table");
+
+    let create_table = "
+        CREATE TABLE IF NOT EXISTS news_likes (
+        id BIGSERIAL PRIMARY KEY,
+        article_id BIGINT REFERENCES news_articles(id),
+        reader_id BIGINT REFERENCES users(id),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (article_id, reader_id)
+    );";
+
+    client.lock().await.execute(create_table, &[]).await?;
+
+    Ok(())
+}
+
+async fn create_news_views_table(client: &Arc<Mutex<Client>>) -> Result<(), Box<dyn Error>> {
+    debug!("Creating news views table");
+
+    let create_table = "
+        CREATE TABLE IF NOT EXISTS news_views (
+        id BIGSERIAL PRIMARY KEY,
+        article_id BIGINT REFERENCES news_articles(id),
+        views BIGINT
+    );";
+
+    client.lock().await.execute(create_table, &[]).await?;
+
     Ok(())
 }

@@ -58,28 +58,28 @@
 - [ ] - Comment Model
 - [ ] - Comments Handler
 - [ ] - Comments SQL
-- [ ] - Comments Table
+- [x] - Comments Table
 
 ---
 
 - [ ] - Like Model
 - [ ] - Likes Handler
 - [ ] - Likes SQL
-- [ ] - Likes Table
+- [x] - Likes Table
 
 ---
 
 - [ ] - View Model
 - [ ] - Views Handler
 - [ ] - Views SQL
-- [ ] - Views Table
+- [x] - Views Table
 
 ---
 
 - [ ] - Tag Model
 - [ ] - Tags Handler
 - [ ] - Tags SQL
-- [ ] - Tags Table
+- [x] - Tags Table
 
 ---
 
@@ -167,7 +167,7 @@
 > Implement from scratch
 
 - [ ] - Account Model
-- [ ] - Accounts Handler
+- [x] - Accounts Handler
 - [x] - Password Encryption Algorithm
 - [ ] - Accounts SQL
 - [ ] - Accounts Table
