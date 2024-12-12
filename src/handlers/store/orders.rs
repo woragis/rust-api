@@ -2,15 +2,18 @@ use crate::{
     models::store::order::{CreateOrderRequest, Order},
     utils::{admin::verify_admin, jwt::verify_jwt},
 };
-use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use actix_web::{
+    web::{Data, Json, Path},
+    HttpRequest, HttpResponse, Responder,
+};
 use log::{debug, error, info, warn};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
 pub async fn create_order(
-    client: web::Data<Arc<Mutex<Client>>>,
-    order: web::Json<CreateOrderRequest>,
+    client: Data<Arc<Mutex<Client>>>,
+    order: Json<CreateOrderRequest>,
     req: HttpRequest,
 ) -> impl Responder {
     let user_id = verify_jwt(&req).expect("oi");
@@ -42,10 +45,7 @@ pub async fn create_order(
     }
 }
 
-pub async fn read_order(
-    client: web::Data<Arc<Mutex<Client>>>,
-    order_id: web::Path<i32>,
-) -> impl Responder {
+pub async fn read_order(client: Data<Arc<Mutex<Client>>>, order_id: Path<i32>) -> impl Responder {
     debug!("Inserting new order into the database");
     let query = "SELECT * FROM orders WHERE id = $1";
     match client.lock().await.query_one(query, &[&*order_id]).await {
@@ -61,7 +61,7 @@ pub async fn read_order(
     }
 }
 
-pub async fn read_orders(client: web::Data<Arc<Mutex<Client>>>) -> impl Responder {
+pub async fn read_orders(client: Data<Arc<Mutex<Client>>>) -> impl Responder {
     debug!("Inserting new order into the database");
     let query = "SELECT * FROM orders";
     match client.lock().await.query(query, &[]).await {
@@ -79,9 +79,9 @@ pub async fn read_orders(client: web::Data<Arc<Mutex<Client>>>) -> impl Responde
 
 /*
 pub async fn update_order(
-    client: web::Data<Arc<Mutex<Client>>>,
-    order_id: web::Path<i32>,
-    order: web::Json<UpdateProductRequest>,
+    client: Data<Arc<Mutex<Client>>>,
+    order_id: Path<i32>,
+    order: Json<UpdateProductRequest>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for creating a user");
@@ -126,8 +126,8 @@ pub async fn update_order(
 */
 
 pub async fn delete_order(
-    client: web::Data<Arc<Mutex<Client>>>,
-    order_id: web::Path<i32>,
+    client: Data<Arc<Mutex<Client>>>,
+    order_id: Path<i32>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for deleting a order");

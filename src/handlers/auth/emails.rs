@@ -1,14 +1,14 @@
 use crate::models::user::User;
 use crate::utils::emails::send_email;
 use crate::utils::jwt::verify_jwt;
-use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use actix_web::{web::Data, HttpRequest, HttpResponse, Responder};
 use log::{debug, error, info, warn};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
 pub async fn recover_password(
-    client: web::Data<Arc<Mutex<Client>>>,
+    client: Data<Arc<Mutex<Client>>>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Reading user profile");
@@ -34,10 +34,7 @@ pub async fn recover_password(
     }
 }
 
-pub async fn verify_email(
-    client: web::Data<Arc<Mutex<Client>>>,
-    req: HttpRequest,
-) -> impl Responder {
+pub async fn verify_email(client: Data<Arc<Mutex<Client>>>, req: HttpRequest) -> impl Responder {
     debug!("Sending email verification");
     let user_id = verify_jwt(&req).expect("oi");
     let query: &str = "SELECT email FROM users WHERE id = $1;";

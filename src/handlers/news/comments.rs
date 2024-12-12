@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use actix_web::{
+    web::{Data, Json, Path},
+    HttpRequest, HttpResponse, Responder,
+};
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
@@ -12,9 +15,9 @@ use crate::{
 const TABLE: &str = "news_comments";
 
 pub async fn create_comment(
-    client: web::Data<Arc<Mutex<Client>>>,
-    article_id: web::Path<NewsId>,
-    comment: web::Json<PostComment>,
+    client: Data<Arc<Mutex<Client>>>,
+    article_id: Path<NewsId>,
+    comment: Json<PostComment>,
     req: HttpRequest,
 ) -> impl Responder {
     let user_id = verify_jwt(&req).expect("oi");

@@ -5,54 +5,54 @@ use crate::handlers::news::{
     },
     comments::create_comment,
 };
-use actix_web::{web, Scope};
+use actix_web::{
+    web::{delete, get, post, put, scope},
+    Scope,
+};
 
 pub fn news_articles_routes() -> Scope {
-    web::scope("/news/articles")
-        .route("/", web::get().to(read_articles))
-        .route("/", web::post().to(create_article))
-        .route("/{article_id}", web::get().to(read_article))
-        .route("/{article_id}", web::put().to(update_article))
-        .route("/{article_id}/status", web::put().to(update_article_status))
-        .route("/{article_id}", web::delete().to(delete_article))
+    scope("/news/articles")
+        .route("/", get().to(read_articles))
+        .route("/", post().to(create_article))
+        .route("/{article_id}", get().to(read_article))
+        .route("/{article_id}", put().to(update_article))
+        .route("/{article_id}/status", put().to(update_article_status))
+        .route("/{article_id}", delete().to(delete_article))
         // comments
-        .route("/{article_id}/comments", web::get().to(read_articles))
+        .route("/{article_id}/comments", get().to(read_articles))
         .route(
             "/{article_id}/comments/{comment_id}",
-            web::get().to(read_article),
+            get().to(read_article),
         )
         .route(
             "/{article_id}/comments/{comment_id}",
-            web::post().to(create_comment),
+            post().to(create_comment),
         )
         .route(
             "/{article_id}/comments/{comment_id}",
-            web::put().to(update_article),
+            put().to(update_article),
         )
         .route(
             "/{article_id}/comments/{comment_id}",
-            web::delete().to(delete_article),
+            delete().to(delete_article),
         )
         // article tags
-        .route("/{article_id}/tags", web::get().to(read_articles))
-        .route("/{article_id}/tags/{tag_id}", web::put().to(update_article))
-        .route(
-            "/{article_id}/tags/{tag_id}",
-            web::delete().to(delete_article),
-        )
+        .route("/{article_id}/tags", get().to(read_articles))
+        .route("/{article_id}/tags/{tag_id}", put().to(update_article))
+        .route("/{article_id}/tags/{tag_id}", delete().to(delete_article))
         // likes
-        .route("/{article_id}/likes", web::get().to(read_articles))
-        .route("/{article_id}/likes", web::post().to(create_article))
+        .route("/{article_id}/likes", get().to(read_articles))
+        .route("/{article_id}/likes", post().to(create_article))
         // views
-        .route("/{article_id}/views", web::get().to(read_articles))
-        .route("/{article_id}/views", web::post().to(create_article))
+        .route("/{article_id}/views", get().to(read_articles))
+        .route("/{article_id}/views", post().to(create_article))
 }
 
 pub fn news_tags_routes() -> Scope {
-    web::scope("/news/tags")
-        .route("/", web::get().to(read_articles))
-        .route("/", web::post().to(create_article))
-        .route("/{tag_id}", web::get().to(read_article))
-        .route("/{tag_id}", web::put().to(update_article))
-        .route("/{tag_id}", web::delete().to(delete_article))
+    scope("/news/tags")
+        .route("/", get().to(read_articles))
+        .route("/", post().to(create_article))
+        .route("/{tag_id}", get().to(read_article))
+        .route("/{tag_id}", put().to(update_article))
+        .route("/{tag_id}", delete().to(delete_article))
 }

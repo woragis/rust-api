@@ -5,7 +5,10 @@ use crate::models::news::NewsId;
 use crate::utils::admin::verify_admin;
 use crate::utils::auth::verify_ownership;
 use crate::utils::jwt::verify_jwt;
-use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use actix_web::{
+    web::{Data, Json, Path},
+    HttpRequest, HttpResponse, Responder,
+};
 use log::{debug, error, info, warn};
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -15,8 +18,8 @@ const TABLE: &str = "news_articles";
 const OWNER_ID: &str = "writer_id";
 
 pub async fn create_article(
-    client: web::Data<Arc<Mutex<Client>>>,
-    article: web::Json<CreateNewsArticleRequest>,
+    client: Data<Arc<Mutex<Client>>>,
+    article: Json<CreateNewsArticleRequest>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for creating a news article");
@@ -64,8 +67,8 @@ pub async fn create_article(
 }
 
 pub async fn read_article(
-    client: web::Data<Arc<Mutex<Client>>>,
-    article_id: web::Path<NewsId>,
+    client: Data<Arc<Mutex<Client>>>,
+    article_id: Path<NewsId>,
 ) -> impl Responder {
     debug!("Querying news article with id={}", article_id);
     let query: String = format!("SELECT * FROM {} WHERE id = $1", TABLE);
@@ -89,7 +92,7 @@ pub async fn read_article(
     }
 }
 
-pub async fn read_articles(client: web::Data<Arc<Mutex<Client>>>) -> impl Responder {
+pub async fn read_articles(client: Data<Arc<Mutex<Client>>>) -> impl Responder {
     debug!("Querying all news articles from the database");
     let query: String = format!("SELECT * FROM {};", TABLE);
     match client.lock().await.query(&query, &[]).await {
@@ -109,9 +112,9 @@ pub async fn read_articles(client: web::Data<Arc<Mutex<Client>>>) -> impl Respon
 }
 
 pub async fn update_article(
-    client: web::Data<Arc<Mutex<Client>>>,
-    article_id: web::Path<NewsId>,
-    article: web::Json<UpdateNewsArticleRequest>,
+    client: Data<Arc<Mutex<Client>>>,
+    article_id: Path<NewsId>,
+    article: Json<UpdateNewsArticleRequest>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for updating a article");
@@ -169,8 +172,8 @@ pub async fn update_article(
 }
 
 pub async fn delete_article(
-    client: web::Data<Arc<Mutex<Client>>>,
-    article_id: web::Path<NewsId>,
+    client: Data<Arc<Mutex<Client>>>,
+    article_id: Path<NewsId>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for deleting a article");
@@ -208,9 +211,9 @@ pub async fn delete_article(
 }
 
 pub async fn update_article_status(
-    client: web::Data<Arc<Mutex<Client>>>,
-    article_id: web::Path<NewsId>,
-    article: web::Json<UpdateNewsArticleStatusRequest>,
+    client: Data<Arc<Mutex<Client>>>,
+    article_id: Path<NewsId>,
+    article: Json<UpdateNewsArticleStatusRequest>,
     req: HttpRequest,
 ) -> impl Responder {
     // test if user is either:

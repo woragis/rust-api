@@ -1,12 +1,12 @@
 use super::jwt::verify_jwt;
-use actix_web::{web, HttpRequest, HttpResponse};
+use actix_web::{web::Data, HttpRequest, HttpResponse};
 use log::{error, info};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
 pub async fn verify_ownership(
-    client: &web::Data<Arc<Mutex<Client>>>,
+    client: &Data<Arc<Mutex<Client>>>,
     req: &HttpRequest,
     table: &str,
     id: &str,

@@ -9,12 +9,10 @@ use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
 use crate::{
+    config::encryption::{block_size, key},
     models::password_manager::user_data::{CreateData, ServiceData, UpdateData},
     shared::types::Id,
-    utils::{
-        jwt::verify_jwt,
-        password_manager::{decrypt, encrypt, generate_key},
-    },
+    utils::jwt::verify_jwt,
 };
 
 const TABLE: &str = "password_manager";
@@ -26,7 +24,7 @@ pub async fn get_data(client: Data<Arc<Mutex<Client>>>, req: HttpRequest) -> imp
         Ok(rows) => {
             let user_saved_data: Vec<ServiceData> = rows
                 .into_iter()
-                .map(|row| ServiceData::from_row(row))
+                .map(|row| ServiceData::decrypt_row(row, key))
                 .collect();
             info!("Successfully retrieved all user data from password manager app");
             // HttpResponse::Ok().json(articles)
@@ -42,6 +40,7 @@ pub async fn insert_data(
     data: Json<CreateData>,
 ) -> impl Responder {
     let user_id = verify_jwt(&req).expect("hi");
+    let encrypted_data = CreateData::encrypt_data(key, data, block_size);
     let query = format!(
         "INSERT INTO {} 
     name, email, username, password, user_id
@@ -54,10 +53,10 @@ pub async fn insert_data(
         .execute(
             &query,
             &[
-                &data.name,
-                &data.email,
-                &data.username,
-                &data.password,
+                &encrypted_data.name,
+                &encrypted_data.email,
+                &encrypted_data.username,
+                &encrypted_data.password,
                 &user_id,
             ],
         )
@@ -74,6 +73,7 @@ pub async fn update_data(
     data: Json<UpdateData>,
 ) -> impl Responder {
     let user_id = verify_jwt(&req).expect("hi");
+    let encrypted_data = UpdateData::encrypt_data(key, data, block_size);
     let query = format!("UPDATE {} SET name = $1, email = $2, username = $3, password = $4 WHERE id = $5 AND user_id = $6;", TABLE);
     match client
         .lock()
@@ -81,11 +81,11 @@ pub async fn update_data(
         .execute(
             &query,
             &[
-                &data.name,
-                &data.email,
-                &data.username,
-                &data.password,
-                &data.id,
+                &encrypted_data.name,
+                &encrypted_data.email,
+                &encrypted_data.username,
+                &encrypted_data.password,
+                &encrypted_data.id,
                 &user_id,
             ],
         )
@@ -102,8 +102,13 @@ pub async fn get_single_data(
     data_id: Path<Id>,
 ) -> impl Responder {
     let user_id = verify_jwt(&req).expect("ho");
-    let query = format!("SELECT * FROM {} WHERE user_id = $1;", TABLE);
-    match client.lock().await.query(&query, &[&*data_id]).await {
+    let query = format!("SELECT * FROM {} WHERE id = $1 AND user_id = $2;", TABLE);
+    match client
+        .lock()
+        .await
+        .query(&query, &[&*data_id, &user_id])
+        .await
+    {
         Ok(rows) => {
             let user_saved_data: Vec<ServiceData> = rows
                 .into_iter()
@@ -123,8 +128,13 @@ pub async fn delete_data(
     data_id: Path<Id>,
 ) -> impl Responder {
     let user_id = verify_jwt(&req).expect("ho");
-    let query = format!("DELETE FROM {} WHERE id = $1;", TABLE);
-    match client.lock().await.execute(&query, &[&*data_id]).await {
+    let query = format!("DELETE FROM {} WHERE id = $1 AND user_id = $2;", TABLE);
+    match client
+        .lock()
+        .await
+        .execute(&query, &[&*data_id, &user_id])
+        .await
+    {
         Ok(_) => {
             info!("Succeffully deleted data from password manager app");
             HttpResponse::Ok().body("Deleted data")

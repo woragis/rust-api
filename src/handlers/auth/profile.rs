@@ -2,16 +2,16 @@ use crate::models::auth::UpdateProfileRequest;
 use crate::models::user::User;
 use crate::utils::bcrypt::hash_password;
 use crate::utils::jwt::verify_jwt;
-use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use actix_web::{
+    web::{Data, Json},
+    HttpRequest, HttpResponse, Responder,
+};
 use log::{debug, error, info, warn};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
-pub async fn read_profile(
-    client: web::Data<Arc<Mutex<Client>>>,
-    req: HttpRequest,
-) -> impl Responder {
+pub async fn read_profile(client: Data<Arc<Mutex<Client>>>, req: HttpRequest) -> impl Responder {
     debug!("Reading user profile");
     let user_id = verify_jwt(&req).expect("oi");
     let query: &str = "SELECT * FROM users WHERE id = $1;";
@@ -36,8 +36,8 @@ pub async fn read_profile(
 }
 
 pub async fn update_profile(
-    client: web::Data<Arc<Mutex<Client>>>,
-    form: web::Json<UpdateProfileRequest>,
+    client: Data<Arc<Mutex<Client>>>,
+    form: Json<UpdateProfileRequest>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Updating user profile");
@@ -86,10 +86,7 @@ pub async fn update_profile(
     }
 }
 
-pub async fn delete_profile(
-    client: web::Data<Arc<Mutex<Client>>>,
-    req: HttpRequest,
-) -> impl Responder {
+pub async fn delete_profile(client: Data<Arc<Mutex<Client>>>, req: HttpRequest) -> impl Responder {
     debug!("Deleting user profile");
     let user_id = verify_jwt(&req).expect("oi");
     let query: &str = "DELETE FROM users WHERE id = $1;";

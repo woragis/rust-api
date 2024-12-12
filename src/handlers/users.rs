@@ -1,15 +1,18 @@
 use crate::models::user::{CreateUserRequest, CreateUserResponse, UpdateUserRequest, User, UserId};
 use crate::utils::admin::verify_admin;
 use crate::utils::bcrypt::hash_password;
-use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use actix_web::{
+    web::{Data, Json, Path},
+    HttpRequest, HttpResponse, Responder,
+};
 use log::{debug, error, info, warn};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
 pub async fn create_user(
-    client: web::Data<Arc<Mutex<Client>>>,
-    user: web::Json<CreateUserRequest>,
+    client: Data<Arc<Mutex<Client>>>,
+    user: Json<CreateUserRequest>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for creating a user");
@@ -56,8 +59,8 @@ pub async fn create_user(
 }
 
 pub async fn read_user(
-    client: web::Data<Arc<Mutex<Client>>>,
-    user_id: web::Path<UserId>,
+    client: Data<Arc<Mutex<Client>>>,
+    user_id: Path<UserId>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for reading a user");
@@ -86,7 +89,7 @@ pub async fn read_user(
     }
 }
 
-pub async fn read_users(client: web::Data<Arc<Mutex<Client>>>, req: HttpRequest) -> impl Responder {
+pub async fn read_users(client: Data<Arc<Mutex<Client>>>, req: HttpRequest) -> impl Responder {
     debug!("Verifying admin privileges for reading all users");
     match verify_admin(&client, &req).await {
         Ok(true) => info!("Admin privileges verified"),
@@ -110,9 +113,9 @@ pub async fn read_users(client: web::Data<Arc<Mutex<Client>>>, req: HttpRequest)
 }
 
 pub async fn update_user(
-    client: web::Data<Arc<Mutex<Client>>>,
-    user_id: web::Path<UserId>,
-    user: web::Json<UpdateUserRequest>,
+    client: Data<Arc<Mutex<Client>>>,
+    user_id: Path<UserId>,
+    user: Json<UpdateUserRequest>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for updating a user");
@@ -173,8 +176,8 @@ pub async fn update_user(
 }
 
 pub async fn delete_user(
-    client: web::Data<Arc<Mutex<Client>>>,
-    user_id: web::Path<UserId>,
+    client: Data<Arc<Mutex<Client>>>,
+    user_id: Path<UserId>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for deleting a user");

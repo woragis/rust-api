@@ -2,15 +2,18 @@ use crate::models::auth::{LoginRequest, RegisterRequest};
 use crate::models::user::UserId;
 use crate::utils::bcrypt::{hash_password, verify_password};
 use crate::utils::jwt::create_jwt;
-use actix_web::{web, HttpResponse, Responder};
+use actix_web::{
+    web::{Data, Json},
+    HttpResponse, Responder,
+};
 use log::{debug, error, info, warn};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
 pub async fn register(
-    client: web::Data<Arc<Mutex<Client>>>,
-    form: web::Json<RegisterRequest>,
+    client: Data<Arc<Mutex<Client>>>,
+    form: Json<RegisterRequest>,
 ) -> impl Responder {
     debug!("Registering user");
     let hashed_password = hash_password(&form.password);
@@ -46,10 +49,7 @@ pub async fn register(
     }
 }
 
-pub async fn login(
-    client: web::Data<Arc<Mutex<Client>>>,
-    form: web::Json<LoginRequest>,
-) -> impl Responder {
+pub async fn login(client: Data<Arc<Mutex<Client>>>, form: Json<LoginRequest>) -> impl Responder {
     debug!("Logging user");
     let query = "SELECT id, email, password FROM users WHERE email = $1";
     match client.lock().await.query_opt(query, &[&form.email]).await {

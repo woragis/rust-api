@@ -1,12 +1,12 @@
 use super::jwt::verify_jwt;
-use actix_web::{web, HttpRequest, HttpResponse};
+use actix_web::{web::Data, HttpRequest, HttpResponse};
 use log::{debug, error, info, warn};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
 pub async fn verify_admin(
-    client: &web::Data<Arc<Mutex<Client>>>,
+    client: &Data<Arc<Mutex<Client>>>,
     req: &HttpRequest,
 ) -> Result<bool, HttpResponse> {
     let query = "SELECT role FROM users WHERE id = $1";

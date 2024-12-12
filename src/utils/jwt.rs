@@ -1,12 +1,13 @@
 use crate::models::auth::Claims;
 use crate::{config::jwt::SECRET, models::user::UserId};
 use actix_web::{HttpRequest, HttpResponse};
+use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use log::{debug, error, info, warn};
 
 pub fn create_jwt(user_id: UserId, user_email: String) -> String {
-    let expiration: usize = chrono::Utc::now()
-        .checked_add_signed(chrono::Duration::hours(24))
+    let expiration: usize = Utc::now()
+        .checked_add_signed(Duration::hours(24))
         .expect("valid timestamp")
         .timestamp() as usize;
 

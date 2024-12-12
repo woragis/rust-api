@@ -2,15 +2,18 @@ use crate::models::store::product::{
     CreateProductRequest, Product, ProductId, UpdateProductRequest,
 };
 use crate::utils::admin::verify_admin;
-use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use actix_web::{
+    web::{Data, Json, Path},
+    HttpRequest, HttpResponse, Responder,
+};
 use log::{debug, error, info, warn};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
 pub async fn create_product(
-    client: web::Data<Arc<Mutex<Client>>>,
-    product: web::Json<CreateProductRequest>,
+    client: Data<Arc<Mutex<Client>>>,
+    product: Json<CreateProductRequest>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for creating a product");
@@ -77,8 +80,8 @@ pub async fn create_product(
 }
 
 pub async fn read_product(
-    client: web::Data<Arc<Mutex<Client>>>,
-    product_id: web::Path<ProductId>,
+    client: Data<Arc<Mutex<Client>>>,
+    product_id: Path<ProductId>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for reading a product");
@@ -110,10 +113,7 @@ pub async fn read_product(
     }
 }
 
-pub async fn read_products(
-    client: web::Data<Arc<Mutex<Client>>>,
-    req: HttpRequest,
-) -> impl Responder {
+pub async fn read_products(client: Data<Arc<Mutex<Client>>>, req: HttpRequest) -> impl Responder {
     debug!("Verifying admin privileges for reading all products");
     match verify_admin(&client, &req).await {
         Ok(true) => info!("Admin privileges verified"),
@@ -138,9 +138,9 @@ pub async fn read_products(
 }
 
 pub async fn update_product(
-    client: web::Data<Arc<Mutex<Client>>>,
-    product_id: web::Path<ProductId>,
-    product: web::Json<UpdateProductRequest>,
+    client: Data<Arc<Mutex<Client>>>,
+    product_id: Path<ProductId>,
+    product: Json<UpdateProductRequest>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for updating a product");
@@ -194,8 +194,8 @@ pub async fn update_product(
 }
 
 pub async fn delete_product(
-    client: web::Data<Arc<Mutex<Client>>>,
-    product_id: web::Path<ProductId>,
+    client: Data<Arc<Mutex<Client>>>,
+    product_id: Path<ProductId>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for deleting a product");

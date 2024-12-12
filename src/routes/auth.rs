@@ -3,19 +3,22 @@ use crate::{
     handlers::auth::emails::{recover_password, verify_email},
     handlers::auth::profile::{delete_profile, read_profile, update_profile},
 };
-use actix_web::{web, Scope};
+use actix_web::{
+    web::{delete, get, post, put, scope},
+    Scope,
+};
 
 pub fn auth_routes() -> Scope {
-    web::scope("/auth")
-        .route("/register", web::post().to(register))
-        .route("/login", web::post().to(login))
-        .route("/recover-password", web::get().to(recover_password))
-        .route("/verify", web::get().to(verify_email))
+    scope("/auth")
+        .route("/register", post().to(register))
+        .route("/login", post().to(login))
+        .route("/recover-password", get().to(recover_password))
+        .route("/verify", get().to(verify_email))
 }
 
 pub fn profile_routes() -> Scope {
-    web::scope("/profile")
-        .route("/", web::get().to(read_profile))
-        .route("/", web::put().to(update_profile))
-        .route("/", web::delete().to(delete_profile))
+    scope("/profile")
+        .route("/", get().to(read_profile))
+        .route("/", put().to(update_profile))
+        .route("/", delete().to(delete_profile))
 }

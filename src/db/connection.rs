@@ -1,8 +1,8 @@
 use log::{debug, error, info};
 use std::error::Error;
 use std::sync::Arc;
-use tokio::sync::Mutex;
-use tokio_postgres::{Client, NoTls};
+use tokio::{spawn, sync::Mutex};
+use tokio_postgres::{connect, Client, NoTls};
 
 use crate::config::db::get_db_string;
 
@@ -14,11 +14,11 @@ impl DbConnection {
     pub async fn new() -> Result<Self, Box<dyn Error>> {
         debug!("Estabilishing database connection");
         let db_url = get_db_string();
-        let (client, connection) = tokio_postgres::connect(&db_url, NoTls)
+        let (client, connection) = connect(&db_url, NoTls)
             .await
             .expect("Error connecting to Database");
 
-        tokio::spawn(async move {
+        spawn(async move {
             if let Err(err) = connection.await {
                 error!("Failed to connect to database: {:?}", err);
             }
