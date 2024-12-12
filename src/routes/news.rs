@@ -3,7 +3,7 @@ use crate::handlers::news::{
         create_article, delete_article, read_article, read_articles, update_article,
         update_article_status,
     },
-    comments::{create_comment, read_comments}, likes::{get_articles_likes, get_comments_likes, like_article, like_comment},
+    comments::{create_comment, delete_comment, edit_comment, read_comments}, likes::{get_articles_likes, get_comments_likes, like_article, like_comment},
 };
 use actix_web::{
     web::{delete, get, post, put, scope},
@@ -29,11 +29,11 @@ pub fn news_articles_routes() -> Scope {
         )
         .route(
             "/{article_id}/comments/{comment_id}",
-            put().to(update_article),
+            put().to(edit_comment),
         )
         .route(
             "/{article_id}/comments/{comment_id}",
-            delete().to(delete_article),
+            delete().to(delete_comment),
         )
         // comments likes
         .route("/{article_id}/comments/{comment_id}/likes", get().to(get_comments_likes))
