@@ -1,3 +1,4 @@
+use crate::db::tables::news::ARTICLES_TABLE;
 use crate::models::news::article::{
     CreateNewsArticleRequest, NewsArticle, UpdateNewsArticleRequest, UpdateNewsArticleStatusRequest,
 };
@@ -14,7 +15,6 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
-const TABLE: &str = "news_articles";
 const OWNER_ID: &str = "writer_id";
 
 pub async fn create_article(
@@ -34,10 +34,10 @@ pub async fn create_article(
     debug!("Verifying news_role for writing a new article");
     let writer_id = verify_jwt(&req).expect("oi");
     // needs to see if user has news_role = writer
-    debug!("Inserting new {} into the database", TABLE);
+    debug!("Inserting new {} into the database", ARTICLES_TABLE);
     let query: String = format!(
             "INSERT INTO {} (title, content, summary, writer_id, status) VALUES ($1, $2, $3, $4, $5) RETURNING id",
-            TABLE
+            ARTICLES_TABLE
         );
     match client
         .lock()
@@ -71,7 +71,7 @@ pub async fn read_article(
     article_id: Path<NewsId>,
 ) -> impl Responder {
     debug!("Querying news article with id={}", article_id);
-    let query: String = format!("SELECT * FROM {} WHERE id = $1", TABLE);
+    let query: String = format!("SELECT * FROM {} WHERE id = $1", ARTICLES_TABLE);
     match client.lock().await.query_opt(&query, &[&*article_id]).await {
         Ok(Some(row)) => {
             let article: NewsArticle = NewsArticle::from_row(row);
@@ -94,7 +94,7 @@ pub async fn read_article(
 
 pub async fn read_articles(client: Data<Arc<Mutex<Client>>>) -> impl Responder {
     debug!("Querying all news articles from the database");
-    let query: String = format!("SELECT * FROM {};", TABLE);
+    let query: String = format!("SELECT * FROM {};", ARTICLES_TABLE);
     match client.lock().await.query(&query, &[]).await {
         Ok(rows) => {
             let articles: Vec<NewsArticle> = rows
@@ -122,7 +122,7 @@ pub async fn update_article(
         Ok(true) => info!("Admin privileges verified"),
         Ok(false) => {
             warn!("User is not admin");
-            match verify_ownership(&client, &req, TABLE, OWNER_ID).await {
+            match verify_ownership(&client, &req, ARTICLES_TABLE, OWNER_ID).await {
                 Ok(_) => info!("User owns the article, thus can update it"),
                 Err(_) => {
                     return HttpResponse::Unauthorized()
@@ -140,7 +140,7 @@ pub async fn update_article(
         title = $1, content = $2, summary = $3,
         updated_at = CURRENT_TIMESTAMP
         WHERE id = $4;",
-        TABLE
+        ARTICLES_TABLE
     );
     match client
         .lock()
@@ -181,7 +181,7 @@ pub async fn delete_article(
         Ok(true) => info!("Admin privileges verified"),
         Ok(false) => {
             warn!("User is not admin");
-            match verify_ownership(&client, &req, TABLE, OWNER_ID).await {
+            match verify_ownership(&client, &req, ARTICLES_TABLE, OWNER_ID).await {
                 Ok(_) => info!("User owns the article, thus can update it"),
                 Err(_) => {
                     return HttpResponse::Unauthorized()
@@ -193,7 +193,7 @@ pub async fn delete_article(
     }
 
     debug!("Deleting article with id={}", article_id);
-    let query: String = format!("DELETE FROM {} WHERE id = $1", TABLE);
+    let query: String = format!("DELETE FROM {} WHERE id = $1", ARTICLES_TABLE);
     match client.lock().await.execute(&query, &[&*article_id]).await {
         Ok(rows_deleted) if rows_deleted > 0 => {
             info!("Successfully deleted article with id={}", article_id);
@@ -224,7 +224,7 @@ pub async fn update_article_status(
         Ok(true) => info!("Admin privileges verified"),
         Ok(false) => {
             warn!("User is not admin");
-            match verify_ownership(&client, &req, TABLE, OWNER_ID).await {
+            match verify_ownership(&client, &req, ARTICLES_TABLE, OWNER_ID).await {
                 Ok(_) => info!("User owns the article, thus can update it"),
                 Err(_) => {
                     return HttpResponse::Unauthorized()
@@ -244,7 +244,7 @@ pub async fn update_article_status(
     let query = format!(
         "UPDATE {} SET status = $1, {} updated_at = CURRENT_TIMESTAMP
         WHERE id = $2;",
-        TABLE, update_string
+        ARTICLES_TABLE, update_string
     );
     match client
         .lock()

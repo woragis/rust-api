@@ -63,6 +63,7 @@ pub async fn get_comments_likes(
 pub async fn like_comment(
     client: Data<Arc<Mutex<Client>>>,
     article_id: Path<NewsId>,
+    comment_id: Path<NewsId>,
     req: HttpRequest,
 ) -> impl Responder {
     let user_id = verify_jwt(&req).expect("oi");
@@ -75,7 +76,7 @@ pub async fn like_comment(
     match client
         .lock()
         .await
-        .query_one(&query, &[&*article_id, &user_id])
+        .query_one(&query, &[&*article_id, &user_id, &*comment_id])
         .await
     {
         Ok(_) => HttpResponse::Ok(),
