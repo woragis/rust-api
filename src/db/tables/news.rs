@@ -54,9 +54,9 @@ async fn create_news_comments_table(client: &Arc<Mutex<Client>>) -> Result<(), B
     let create_table = "
         CREATE TABLE IF NOT EXISTS news_comments (
         id BIGSERIAL PRIMARY KEY,
-        article_id BIGINT REFERENCES news_articles(id),
-        reader_id BIGINT REFERENCES users(id),
-        writer_id BIGINT REFERENCES users(id),
+        article_id BIGINT NOT NULL REFERENCES news_articles(id),
+        reader_id BIGINT NOT NULL REFERENCES users(id),
+        content TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );";
@@ -74,7 +74,6 @@ async fn create_news_likes_table(client: &Arc<Mutex<Client>>) -> Result<(), Box<
         id BIGSERIAL PRIMARY KEY,
         article_id BIGINT REFERENCES news_articles(id),
         reader_id BIGINT REFERENCES users(id),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE (article_id, reader_id)
     );";
 

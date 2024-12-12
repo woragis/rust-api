@@ -43,8 +43,8 @@ pub async fn insert_data(
     let encrypted_data = CreateData::encrypt_data(KEY, data, BLOCK_SIZE);
     let query = format!(
         "INSERT INTO {} 
-    name, email, username, password, user_id
-    VALUES ($1, $2, $3, $4, $5);",
+        name, email, username, password, user_id
+        VALUES ($1, $2, $3, $4, $5);",
         TABLE
     );
     match client

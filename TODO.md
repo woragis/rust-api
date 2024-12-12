@@ -56,14 +56,14 @@
 ---
 
 - [ ] - Comment Model
-- [ ] - Comments Handler
+- [x] - Comments Handler
 - [ ] - Comments SQL
 - [x] - Comments Table
 
 ---
 
 - [ ] - Like Model
-- [ ] - Likes Handler
+- [x] - Likes Handler
 - [ ] - Likes SQL
 - [x] - Likes Table
 
