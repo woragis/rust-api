@@ -48,33 +48,35 @@
 > [!WARNING]  
 > Finish comments, likes and views feature
 
+#### News Articles
+
 - [x] - Article Model
 - [x] - Articles Handler
 - [x] - Articles SQL
 - [x] - Articles Table
 
----
+#### News Comments
 
 - [ ] - Comment Model
 - [x] - Comments Handler
 - [ ] - Comments SQL
 - [x] - Comments Table
 
----
+#### News Likes
 
 - [ ] - Like Model
 - [x] - Likes Handler
 - [ ] - Likes SQL
 - [x] - Likes Table
 
----
+#### News Views
 
 - [ ] - View Model
 - [ ] - Views Handler
 - [ ] - Views SQL
 - [x] - Views Table
 
----
+#### News Tags
 
 - [ ] - Tag Model
 - [ ] - Tags Handler
@@ -88,33 +90,35 @@
 > [!NOTE]  
 > Refactor models and handlers
 
+#### Blogs
+
 - [ ] - Blog Model
 - [ ] - Blogs Handler
 - [ ] - Blogs SQL
 - [ ] - Blogs Table
 
----
+#### Blog Comments
 
 - [ ] - Comment Model
 - [ ] - Comments Handler
 - [ ] - Comments SQL
 - [ ] - Comments Table
 
----
+#### Blog Likes
 
 - [ ] - Like Model
 - [ ] - Likes Handler
 - [ ] - Likes SQL
 - [ ] - Likes Table
 
----
+#### Blog Views
 
 - [ ] - View Model
 - [ ] - Views Handler
 - [ ] - Views SQL
 - [ ] - Views Table
 
----
+#### Blog Tags
 
 - [ ] - Tag Model
 - [ ] - Tags Handler
@@ -128,38 +132,42 @@
 > [!TIP]  
 > Implement from scratch
 
+#### Youtube Video Stream
+
 - [ ] - Youtube Model
 - [ ] - Youtubes Handler
 - [ ] - Youtubes SQL
 - [ ] - Youtubes Table
 
----
+#### Youtube Comments
 
 - [ ] - Comment Model
 - [ ] - Comments Handler
 - [ ] - Comments SQL
 - [ ] - Comments Table
 
----
+#### Youtube Likes
 
 - [ ] - Like Model
 - [ ] - Likes Handler
 - [ ] - Likes SQL
 - [ ] - Likes Table
 
----
+#### Youtube Views
 
 - [ ] - View Model
 - [ ] - Views Handler
 - [ ] - Views SQL
 - [ ] - Views Table
 
----
+#### Youtube Playlists
 
 - [ ] - Playlist Model
 - [ ] - Playlists Handler
 - [ ] - Playlists SQL
 - [ ] - Playlists Table
+
+---
 
 ### Password Manager
 
@@ -177,26 +185,28 @@
 > [!TIP]  
 > Implement from scratch
 
-- [ ] - Youtube Model
-- [ ] - Youtubes Handler
-- [ ] - Youtubes SQL
-- [ ] - Youtubes Table
+#### Lives
 
----
+- [ ] - Live Model
+- [ ] - Lives Handler
+- [ ] - Lives SQL
+- [ ] - Lives Table
+
+#### Lives Comments
 
 - [ ] - Comment Model
 - [ ] - Comments Handler
 - [ ] - Comments SQL
 - [ ] - Comments Table
 
----
+#### Lives Likes
 
 - [ ] - Like Model
 - [ ] - Likes Handler
 - [ ] - Likes SQL
 - [ ] - Likes Table
 
----
+#### Lives Views
 
 - [ ] - View Model
 - [ ] - Views Handler
@@ -210,26 +220,28 @@
 > [!CAUTION]  
 > Refactor from scratch
 
+#### Stores
+
 - [ ] - Store Model
 - [ ] - Stores Handler
 - [ ] - Stores SQL
 - [ ] - Stores Table
 
----
+#### Store Products
 
 - [ ] - Product Model
 - [ ] - Products Handler
 - [ ] - Products SQL
 - [ ] - Products Table
 
----
+#### Store Orders
 
 - [ ] - Order Model
 - [ ] - Orders Handler
 - [ ] - Orders SQL
 - [ ] - Orders Table
 
----
+#### Store Riviews
 
 - [ ] - Review Model
 - [ ] - Reviews Handler
