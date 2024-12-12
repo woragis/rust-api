@@ -1,3 +1,4 @@
+use crate::db::tables::store::PRODUCTS_TABLE;
 use crate::models::store::product::{
     CreateProductRequest, Product, ProductId, UpdateProductRequest,
 };
@@ -24,16 +25,16 @@ pub async fn create_product(
     };
 
     debug!("Inserting new product into the database");
-    let query = "INSERT INTO products (
+    let query = format!("INSERT INTO {} (
         name, description, category, images, price,
         discount, currency, stock, weight, dimensions,
         tags, is_active) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id";
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id", PRODUCTS_TABLE);
     match client
         .lock()
         .await
         .query_one(
-            query,
+            &query,
             &[
                 &product.name,
                 &product.description,
@@ -92,8 +93,8 @@ pub async fn read_product(
     };
 
     debug!("Querying product with id={}", product_id);
-    let query = "SELECT * FROM products WHERE id = $1";
-    match client.lock().await.query_opt(query, &[&*product_id]).await {
+    let query = format!("SELECT * FROM {} WHERE id = $1", PRODUCTS_TABLE);
+    match client.lock().await.query_opt(&query, &[&*product_id]).await {
         Ok(Some(row)) => {
             let product = Product::from_row(row);
             info!("Successfully retrieved product with id={}", product.id);
@@ -122,8 +123,8 @@ pub async fn read_products(client: Data<Arc<Mutex<Client>>>, req: HttpRequest) -
     };
 
     debug!("Querying all products from the database");
-    let query = "SELECT * FROM products";
-    match client.lock().await.query(query, &[]).await {
+    let query = format!("SELECT * FROM {}", PRODUCTS_TABLE);
+    match client.lock().await.query(&query, &[]).await {
         Ok(rows) => {
             let products: Vec<Product> =
                 rows.into_iter().map(|row| Product::from_row(row)).collect();
@@ -151,15 +152,15 @@ pub async fn update_product(
     };
 
     debug!("Updating product with id={}", product_id);
-    let query = "UPDATE products SET
+    let query = format!("UPDATE {} SET
         name = $1, description = $2, category = $3, images = $4, price = $5,
         discount = $6, currency = $7, stock = $8, weight = $9,
-        dimensions = $10, tags = $11, is_active = $12 WHERE id = $13);";
+        dimensions = $10, tags = $11, is_active = $12 WHERE id = $13);", PRODUCTS_TABLE);
     match client
         .lock()
         .await
         .execute(
-            query,
+            &query,
             &[
                 &product.name,
                 &product.description,
@@ -206,8 +207,8 @@ pub async fn delete_product(
     };
 
     debug!("Deleting Product with id={}", product_id);
-    let query = "DELETE FROM products WHERE id = $1";
-    match client.lock().await.execute(query, &[&*product_id]).await {
+    let query = format!("DELETE FROM {} WHERE id = $1", PRODUCTS_TABLE);
+    match client.lock().await.execute(&query, &[&*product_id]).await {
         Ok(rows_deleted) if rows_deleted > 0 => {
             info!("Successfully deleted product with id={}", product_id);
             HttpResponse::Ok().body("Product deleted")

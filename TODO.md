@@ -6,9 +6,8 @@
 
 #### Implementar
 
-- OAuth for _google, discord, twitter_
-  - criar rota Auth/OAuth
-  - para permitir que usarios entrem com contas como **Discord, Google, entre outros**
+- [ ] - **OAuth** Handler _google, discord, twitter_
+- [ ] - **OAuth** Route
 
 ---
 
