@@ -56,7 +56,7 @@
 
 #### News Comments
 
-- [ ] - Comment Model
+- [x] - Comment Model
 - [x] - Comments Handler
 - [ ] - Comments SQL
 - [x] - Comments Table
