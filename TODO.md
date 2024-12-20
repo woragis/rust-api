@@ -14,8 +14,7 @@
 #### Admin
 
 > [!CAUTION]  
-> Refactor return type and inline responses
-> Refactor code implementation in handlers from other files
+> Refactor return type and inline responses Refactor code implementation in handlers from other files
 
 - [ ] - Review admin functions return
 - [ ] - Review inline HttpResponses
@@ -65,21 +64,21 @@
 
 - [ ] - Like Model
 - [x] - Likes Handler
-- [ ] - Likes SQL
+- [x] - Likes SQL
 - [x] - Likes Table
 
 #### News Views
 
 - [ ] - View Model
 - [ ] - Views Handler
-- [ ] - Views SQL
+- [x] - Views SQL
 - [x] - Views Table
 
 #### News Tags
 
 - [ ] - Tag Model
 - [ ] - Tags Handler
-- [ ] - Tags SQL
+- [x] - Tags SQL
 - [x] - Tags Table
 
 ---
@@ -177,7 +176,7 @@
 - [x] - Accounts Handler
 - [x] - Password Encryption Algorithm
 - [ ] - Accounts SQL
-- [ ] - Accounts Table
+- [x] - Accounts Table
 
 ### Twitch.tv / Kicks _live stream service_
 
@@ -252,3 +251,4 @@
 ## Refactor
 
 - [x] - Decrease "callback hell" occurrences
+- [x] - Use 'format' macro to use constants as tables

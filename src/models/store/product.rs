@@ -76,6 +76,4 @@ pub struct UpdateProductRequest {
     pub dimensions: String,
     pub tags: Vec<String>,
     pub is_active: bool,
-    pub created_at: NaiveDateTime,
-    pub updated_at: NaiveDateTime,
 }

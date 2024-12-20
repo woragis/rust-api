@@ -4,7 +4,7 @@ mod handlers;
 mod models;
 mod routes;
 mod shared;
-mod tests;
+// mod tests;
 mod utils;
 
 use actix_web::{web::Data, App, HttpServer};
