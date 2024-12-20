@@ -1,13 +1,15 @@
 use log::debug;
-use std::error::Error;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tokio_postgres::Client;
+use tokio_postgres::{Client, Error};
 
-pub async fn create_users_table(client: Arc<Mutex<Client>>) -> Result<(), Box<dyn Error>> {
+pub const USERS_TABLE: &str = "users";
+
+pub async fn create_users_table(client: Arc<Mutex<Client>>) -> Result<(), Error> {
     debug!("Creating users table");
-    let create_users_table_sql = "
-        CREATE TABLE IF NOT EXISTS users (
+
+    let stmt: String = format!("
+        CREATE TABLE IF NOT EXISTS {} (
         id BIGSERIAL PRIMARY KEY,
         first_name VARCHAR(100) NOT NULL,
         last_name VARCHAR(100) NOT NULL,
@@ -33,11 +35,13 @@ pub async fn create_users_table(client: Arc<Mutex<Client>>) -> Result<(), Box<dy
         CONSTRAINT check_store_role CHECK (store_role IN ('buyer', 'seller')),
         CONSTRAINT check_youtube_role CHECK (youtube_role IN ('user', 'youtuber')),
         CONSTRAINT check_fanfic_role CHECK (fanfic_role IN ('reader', 'writer'))
-    );";
+    );", USERS_TABLE);
+
     client
         .lock()
         .await
-        .execute(create_users_table_sql, &[])
+        .execute(&stmt, &[])
         .await?;
+
     Ok(())
 }

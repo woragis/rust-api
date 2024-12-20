@@ -9,10 +9,10 @@ use tokio_postgres::Client;
 
 use crate::{
     db::tables::news::COMMENTS_TABLE,
-    models::news::{
+    models::{news::{
         comment::{Comment, CreateComment, DeleteComment, EditComment},
         NewsId,
-    },
+    }, user::UserId},
     utils::jwt::verify_jwt,
 };
 
@@ -20,9 +20,9 @@ pub async fn read_comments(
     client: Data<Arc<Mutex<Client>>>,
     article_id: Path<NewsId>,
 ) -> impl Responder {
-    let query = format!("SELECT * FROM {} WHERE article_id = $1;", COMMENTS_TABLE);
+    let stmt: String = format!("SELECT * FROM {} WHERE article_id = $1;", COMMENTS_TABLE);
 
-    match client.lock().await.query(&query, &[&*article_id]).await {
+    match client.lock().await.query(&stmt, &[&*article_id]).await {
         Ok(rows) => {
             let comments: Vec<Comment> =
                 rows.into_iter().map(|row| Comment::from_row(row)).collect();
@@ -38,9 +38,9 @@ pub async fn create_comment(
     comment: Json<CreateComment>,
     req: HttpRequest,
 ) -> impl Responder {
-    let user_id = verify_jwt(&req).expect("oi");
+    let user_id: UserId = verify_jwt(&req).expect("oi");
 
-    let query = format!(
+    let stmt: String = format!(
         "INSERT INTO {} (article_id, reader_id, content) VALUES ($1, $2, $3);",
         COMMENTS_TABLE
     );
@@ -48,7 +48,7 @@ pub async fn create_comment(
     match client
         .lock()
         .await
-        .query_one(&query, &[&*article_id, &user_id, &comment.content])
+        .query_one(&stmt, &[&*article_id, &user_id, &comment.content])
         .await
     {
         Ok(_) => HttpResponse::Created(),
@@ -62,9 +62,9 @@ pub async fn edit_comment(
     comment: Json<EditComment>,
     req: HttpRequest,
 ) -> impl Responder {
-    let user_id = verify_jwt(&req).expect("oi");
+    let user_id: UserId = verify_jwt(&req).expect("oi");
 
-    let query = format!(
+    let stmt: String = format!(
         "INSERT INTO {} (article_id, reader_id, content) VALUES ($1, $2, $3);",
         COMMENTS_TABLE
     );
@@ -72,7 +72,7 @@ pub async fn edit_comment(
     match client
         .lock()
         .await
-        .query_one(&query, &[&*article_id, &user_id, &comment.content])
+        .query_one(&stmt, &[&*article_id, &user_id, &comment.content])
         .await
     {
         Ok(_) => HttpResponse::Ok(),
@@ -86,9 +86,9 @@ pub async fn delete_comment(
     comment: Json<DeleteComment>,
     req: HttpRequest,
 ) -> impl Responder {
-    let user_id = verify_jwt(&req).expect("oi");
+    let user_id: UserId = verify_jwt(&req).expect("oi");
 
-    let query = format!(
+    let stmt: String = format!(
         "INSERT INTO {} (article_id, reader_id, content) VALUES ($1, $2, $3);",
         COMMENTS_TABLE
     );
@@ -96,7 +96,7 @@ pub async fn delete_comment(
     match client
         .lock()
         .await
-        .query_one(&query, &[&*article_id, &user_id, &comment.id])
+        .query_one(&stmt, &[&*article_id, &user_id, &comment.id])
         .await
     {
         Ok(_) => HttpResponse::Ok(),

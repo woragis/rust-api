@@ -9,18 +9,13 @@ use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
 use crate::{
-    config::encryption::{BLOCK_SIZE, KEY},
-    models::password_manager::user_data::{CreateData, ServiceData, UpdateData},
-    shared::types::Id,
-    utils::jwt::verify_jwt,
+    config::encryption::{BLOCK_SIZE, KEY}, db::tables::password_manager::PASSWORD_MANAGER_TABLE, models::{password_manager::user_data::{CreateData, ServiceData, UpdateData}, user::UserId}, shared::types::Id, utils::jwt::verify_jwt
 };
 
-const TABLE: &str = "password_manager";
-
 pub async fn get_data(client: Data<Arc<Mutex<Client>>>, req: HttpRequest) -> impl Responder {
-    let client_id = verify_jwt(&req).expect("ho");
-    let query = format!("SELECT * FROM {} WHERE user_id = $1;", TABLE);
-    match client.lock().await.query(&query, &[&client_id]).await {
+    let user_id: UserId = verify_jwt(&req).expect("ho");
+    let stmt: String = format!("SELECT * FROM {} WHERE user_id = $1;", PASSWORD_MANAGER_TABLE);
+    match client.lock().await.query(&stmt, &[&user_id]).await {
         Ok(rows) => {
             let user_saved_data: Vec<ServiceData> = rows
                 .into_iter()
@@ -39,19 +34,19 @@ pub async fn insert_data(
     req: HttpRequest,
     data: Json<CreateData>,
 ) -> impl Responder {
-    let user_id = verify_jwt(&req).expect("hi");
-    let encrypted_data = CreateData::encrypt_data(KEY, data, BLOCK_SIZE);
-    let query = format!(
+    let user_id: UserId = verify_jwt(&req).expect("hi");
+    let encrypted_data: CreateData = CreateData::encrypt_data(KEY, data, BLOCK_SIZE);
+    let stmt: String = format!(
         "INSERT INTO {} 
         name, email, username, password, user_id
         VALUES ($1, $2, $3, $4, $5);",
-        TABLE
+        PASSWORD_MANAGER_TABLE
     );
     match client
         .lock()
         .await
         .execute(
-            &query,
+            &stmt,
             &[
                 &encrypted_data.name,
                 &encrypted_data.email,
@@ -72,14 +67,14 @@ pub async fn update_data(
     req: HttpRequest,
     data: Json<UpdateData>,
 ) -> impl Responder {
-    let user_id = verify_jwt(&req).expect("hi");
-    let encrypted_data = UpdateData::encrypt_data(KEY, data, BLOCK_SIZE);
-    let query = format!("UPDATE {} SET name = $1, email = $2, username = $3, password = $4 WHERE id = $5 AND user_id = $6;", TABLE);
+    let user_id: UserId = verify_jwt(&req).expect("hi");
+    let encrypted_data: UpdateData = UpdateData::encrypt_data(KEY, data, BLOCK_SIZE);
+    let stmt: String = format!("UPDATE {} SET name = $1, email = $2, username = $3, password = $4 WHERE id = $5 AND user_id = $6;", PASSWORD_MANAGER_TABLE);
     match client
         .lock()
         .await
         .execute(
-            &query,
+            &stmt,
             &[
                 &encrypted_data.name,
                 &encrypted_data.email,
@@ -101,12 +96,12 @@ pub async fn get_single_data(
     req: HttpRequest,
     data_id: Path<Id>,
 ) -> impl Responder {
-    let user_id = verify_jwt(&req).expect("ho");
-    let query = format!("SELECT * FROM {} WHERE id = $1 AND user_id = $2;", TABLE);
+    let user_id: UserId = verify_jwt(&req).expect("ho");
+    let stmt: String = format!("SELECT * FROM {} WHERE id = $1 AND user_id = $2;", PASSWORD_MANAGER_TABLE);
     match client
         .lock()
         .await
-        .query(&query, &[&*data_id, &user_id])
+        .query(&stmt, &[&*data_id, &user_id])
         .await
     {
         Ok(rows) => {
@@ -127,12 +122,12 @@ pub async fn delete_data(
     req: HttpRequest,
     data_id: Path<Id>,
 ) -> impl Responder {
-    let user_id = verify_jwt(&req).expect("ho");
-    let query = format!("DELETE FROM {} WHERE id = $1 AND user_id = $2;", TABLE);
+    let user_id: UserId = verify_jwt(&req).expect("ho");
+    let stmt: String = format!("DELETE FROM {} WHERE id = $1 AND user_id = $2;", PASSWORD_MANAGER_TABLE);
     match client
         .lock()
         .await
-        .execute(&query, &[&*data_id, &user_id])
+        .execute(&stmt, &[&*data_id, &user_id])
         .await
     {
         Ok(_) => {

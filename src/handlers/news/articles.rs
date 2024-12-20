@@ -35,7 +35,7 @@ pub async fn create_article(
     let writer_id = verify_jwt(&req).expect("oi");
     // needs to see if user has news_role = writer
     debug!("Inserting new {} into the database", ARTICLES_TABLE);
-    let query: String = format!(
+    let stmt: String = format!(
             "INSERT INTO {} (title, content, summary, writer_id, status) VALUES ($1, $2, $3, $4, $5) RETURNING id",
             ARTICLES_TABLE
         );
@@ -43,7 +43,7 @@ pub async fn create_article(
         .lock()
         .await
         .query_one(
-            &query,
+            &stmt,
             &[
                 &article.title,
                 &article.content,
@@ -71,8 +71,8 @@ pub async fn read_article(
     article_id: Path<NewsId>,
 ) -> impl Responder {
     debug!("Querying news article with id={}", article_id);
-    let query: String = format!("SELECT * FROM {} WHERE id = $1", ARTICLES_TABLE);
-    match client.lock().await.query_opt(&query, &[&*article_id]).await {
+    let stmt: String = format!("SELECT * FROM {} WHERE id = $1", ARTICLES_TABLE);
+    match client.lock().await.query_opt(&stmt, &[&*article_id]).await {
         Ok(Some(row)) => {
             let article: NewsArticle = NewsArticle::from_row(row);
             info!("Successfully retrieved news article with id={}", article.id);
@@ -94,8 +94,8 @@ pub async fn read_article(
 
 pub async fn read_articles(client: Data<Arc<Mutex<Client>>>) -> impl Responder {
     debug!("Querying all news articles from the database");
-    let query: String = format!("SELECT * FROM {};", ARTICLES_TABLE);
-    match client.lock().await.query(&query, &[]).await {
+    let stmt: String = format!("SELECT * FROM {};", ARTICLES_TABLE);
+    match client.lock().await.query(&stmt, &[]).await {
         Ok(rows) => {
             let articles: Vec<NewsArticle> = rows
                 .into_iter()
@@ -134,8 +134,7 @@ pub async fn update_article(
     }
 
     debug!("Updating article with id={}", article_id);
-    let query = format!(
-        "
+    let stmt: String = format!("
         UPDATE {} SET
         title = $1, content = $2, summary = $3,
         updated_at = CURRENT_TIMESTAMP
@@ -146,7 +145,7 @@ pub async fn update_article(
         .lock()
         .await
         .execute(
-            &query,
+            &stmt,
             &[
                 &article.title,
                 &article.content,
@@ -193,8 +192,8 @@ pub async fn delete_article(
     }
 
     debug!("Deleting article with id={}", article_id);
-    let query: String = format!("DELETE FROM {} WHERE id = $1", ARTICLES_TABLE);
-    match client.lock().await.execute(&query, &[&*article_id]).await {
+    let stmt: String = format!("DELETE FROM {} WHERE id = $1", ARTICLES_TABLE);
+    match client.lock().await.execute(&stmt, &[&*article_id]).await {
         Ok(rows_deleted) if rows_deleted > 0 => {
             info!("Successfully deleted article with id={}", article_id);
             HttpResponse::Ok().body("Article deleted")
@@ -241,7 +240,7 @@ pub async fn update_article_status(
     } else {
         ""
     };
-    let query = format!(
+    let stmt: String = format!(
         "UPDATE {} SET status = $1, {} updated_at = CURRENT_TIMESTAMP
         WHERE id = $2;",
         ARTICLES_TABLE, update_string
@@ -249,7 +248,7 @@ pub async fn update_article_status(
     match client
         .lock()
         .await
-        .execute(&query, &[&article.status, &*article_id])
+        .execute(&stmt, &[&article.status, &*article_id])
         .await
     {
         Ok(rows_updated) if rows_updated > 0 => {

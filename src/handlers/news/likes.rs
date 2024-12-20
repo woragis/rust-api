@@ -7,18 +7,16 @@ use actix_web::{
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
-use crate::{db::tables::news::LIKES_TABLE, models::news::NewsId, utils::jwt::verify_jwt};
+use crate::{db::tables::news::LIKES_TABLE, models::{news::NewsId, user::UserId}, utils::jwt::verify_jwt};
 
 pub async fn get_articles_likes(
     client: Data<Arc<Mutex<Client>>>,
     article_id: Path<NewsId>,
 ) -> impl Responder {
-    let query = format!("SELECT * FROM {} WHERE article_id = $1;", LIKES_TABLE);
+    let stmt: String = format!("SELECT * FROM {} WHERE article_id = $1;", LIKES_TABLE);
 
-    match client.lock().await.query(&query, &[&*article_id]).await {
-        Ok(_) => {
-            HttpResponse::Ok().body("oi")
-        }
+    match client.lock().await.query(&stmt, &[&*article_id]).await {
+        Ok(_) => HttpResponse::Ok().body("oi"),
         _ => HttpResponse::InternalServerError().body("hey"),
     }
 }
@@ -28,9 +26,9 @@ pub async fn like_article(
     article_id: Path<NewsId>,
     req: HttpRequest,
 ) -> impl Responder {
-    let user_id = verify_jwt(&req).expect("oi");
+    let user_id: UserId = verify_jwt(&req).expect("oi");
 
-    let query = format!(
+    let stmt: String = format!(
         "INSERT INTO {} (article_id, reader_id, content) VALUES ($1, $2, $3);",
         LIKES_TABLE
     );
@@ -38,7 +36,7 @@ pub async fn like_article(
     match client
         .lock()
         .await
-        .query_one(&query, &[&*article_id, &user_id])
+        .query_one(&stmt, &[&*article_id, &user_id])
         .await
     {
         Ok(_) => HttpResponse::Ok(),
@@ -50,12 +48,10 @@ pub async fn get_comments_likes(
     client: Data<Arc<Mutex<Client>>>,
     article_id: Path<NewsId>,
 ) -> impl Responder {
-    let query = format!("SELECT * FROM {} WHERE article_id = $1;", LIKES_TABLE);
+    let stmt: String = format!("SELECT * FROM {} WHERE article_id = $1;", LIKES_TABLE);
 
-    match client.lock().await.query(&query, &[&*article_id]).await {
-        Ok(_) => {
-            HttpResponse::Ok().body("oi")
-        }
+    match client.lock().await.query(&stmt, &[&*article_id]).await {
+        Ok(_) => HttpResponse::Ok().body("oi"),
         _ => HttpResponse::InternalServerError().body("hey"),
     }
 }
@@ -66,9 +62,9 @@ pub async fn like_comment(
     comment_id: Path<NewsId>,
     req: HttpRequest,
 ) -> impl Responder {
-    let user_id = verify_jwt(&req).expect("oi");
+    let user_id: UserId = verify_jwt(&req).expect("oi");
 
-    let query = format!(
+    let stmt: String = format!(
         "INSERT INTO {} (article_id, reader_id, content) VALUES ($1, $2, $3);",
         LIKES_TABLE
     );
@@ -76,7 +72,7 @@ pub async fn like_comment(
     match client
         .lock()
         .await
-        .query_one(&query, &[&*article_id, &user_id, &*comment_id])
+        .query_one(&stmt, &[&*article_id, &user_id, &*comment_id])
         .await
     {
         Ok(_) => HttpResponse::Ok(),

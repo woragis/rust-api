@@ -1,8 +1,7 @@
 use log::{debug, error, info};
-use std::error::Error;
 use std::sync::Arc;
 use tokio::{spawn, sync::Mutex};
-use tokio_postgres::{connect, Client, NoTls};
+use tokio_postgres::{connect, Error, Client, NoTls};
 
 use crate::config::db::get_db_string;
 
@@ -11,9 +10,9 @@ pub struct DbConnection {
 }
 
 impl DbConnection {
-    pub async fn new() -> Result<Self, Box<dyn Error>> {
+    pub async fn new() -> Result<Self, Error> {
         debug!("Estabilishing database connection");
-        let db_url = get_db_string();
+        let db_url: String = get_db_string();
         let (client, connection) = connect(&db_url, NoTls)
             .await
             .expect("Error connecting to Database");

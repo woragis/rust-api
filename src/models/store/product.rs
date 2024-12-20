@@ -1,13 +1,11 @@
-use crate::shared::types::Id;
+use crate::models::store::StoreId;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use tokio_postgres::Row;
 
-pub type ProductId = Id;
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Product {
-    pub id: ProductId,
+    pub id: StoreId,
     pub name: String,
     pub description: String,
     pub category: String,

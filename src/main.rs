@@ -10,6 +10,7 @@ mod utils;
 use actix_web::{web::Data, App, HttpServer};
 use db::connection::DbConnection;
 use db::tables::news::create_news_tables;
+use db::tables::password_manager::create_password_manager_tables;
 use db::tables::store::create_store_tables;
 use db::tables::users::create_users_table;
 use log::{error, info};
@@ -45,6 +46,7 @@ async fn main() -> std::io::Result<()> {
 
     create_store_tables(client.clone()).await;
     create_news_tables(client.clone()).await;
+    create_password_manager_tables(client.clone()).await;
 
     HttpServer::new(move || {
         App::new()

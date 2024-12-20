@@ -1,7 +1,8 @@
 use crate::db::tables::store::PRODUCTS_TABLE;
 use crate::models::store::product::{
-    CreateProductRequest, Product, ProductId, UpdateProductRequest,
+    CreateProductRequest, Product, UpdateProductRequest,
 };
+use crate::models::store::StoreId;
 use crate::utils::admin::verify_admin;
 use actix_web::{
     web::{Data, Json, Path},
@@ -25,16 +26,19 @@ pub async fn create_product(
     };
 
     debug!("Inserting new product into the database");
-    let query = format!("INSERT INTO {} (
+    let stmt: String = format!(
+        "INSERT INTO {} (
         name, description, category, images, price,
         discount, currency, stock, weight, dimensions,
         tags, is_active) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id", PRODUCTS_TABLE);
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id",
+        PRODUCTS_TABLE
+    );
     match client
         .lock()
         .await
         .query_one(
-            &query,
+            &stmt,
             &[
                 &product.name,
                 &product.description,
@@ -53,7 +57,7 @@ pub async fn create_product(
         .await
     {
         Ok(row) => {
-            let id: ProductId = row.get("id");
+            let id: StoreId= row.get("id");
             info!("Successfully created product with id={}", id);
             HttpResponse::Created().json(Product {
                 id,
@@ -82,7 +86,7 @@ pub async fn create_product(
 
 pub async fn read_product(
     client: Data<Arc<Mutex<Client>>>,
-    product_id: Path<ProductId>,
+    product_id: Path<StoreId>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for reading a product");
@@ -93,10 +97,10 @@ pub async fn read_product(
     };
 
     debug!("Querying product with id={}", product_id);
-    let query = format!("SELECT * FROM {} WHERE id = $1", PRODUCTS_TABLE);
-    match client.lock().await.query_opt(&query, &[&*product_id]).await {
+    let stmt: String = format!("SELECT * FROM {} WHERE id = $1", PRODUCTS_TABLE);
+    match client.lock().await.query_opt(&stmt, &[&*product_id]).await {
         Ok(Some(row)) => {
-            let product = Product::from_row(row);
+            let product: Product = Product::from_row(row);
             info!("Successfully retrieved product with id={}", product.id);
             HttpResponse::Ok().json(product)
         }
@@ -123,8 +127,8 @@ pub async fn read_products(client: Data<Arc<Mutex<Client>>>, req: HttpRequest) -
     };
 
     debug!("Querying all products from the database");
-    let query = format!("SELECT * FROM {}", PRODUCTS_TABLE);
-    match client.lock().await.query(&query, &[]).await {
+    let stmt: String = format!("SELECT * FROM {}", PRODUCTS_TABLE);
+    match client.lock().await.query(&stmt, &[]).await {
         Ok(rows) => {
             let products: Vec<Product> =
                 rows.into_iter().map(|row| Product::from_row(row)).collect();
@@ -140,7 +144,7 @@ pub async fn read_products(client: Data<Arc<Mutex<Client>>>, req: HttpRequest) -
 
 pub async fn update_product(
     client: Data<Arc<Mutex<Client>>>,
-    product_id: Path<ProductId>,
+    product_id: Path<StoreId>,
     product: Json<UpdateProductRequest>,
     req: HttpRequest,
 ) -> impl Responder {
@@ -152,15 +156,18 @@ pub async fn update_product(
     };
 
     debug!("Updating product with id={}", product_id);
-    let query = format!("UPDATE {} SET
+    let stmt: String = format!(
+        "UPDATE {} SET
         name = $1, description = $2, category = $3, images = $4, price = $5,
         discount = $6, currency = $7, stock = $8, weight = $9,
-        dimensions = $10, tags = $11, is_active = $12 WHERE id = $13);", PRODUCTS_TABLE);
+        dimensions = $10, tags = $11, is_active = $12 WHERE id = $13);",
+        PRODUCTS_TABLE
+    );
     match client
         .lock()
         .await
         .execute(
-            &query,
+            &stmt,
             &[
                 &product.name,
                 &product.description,
@@ -196,7 +203,7 @@ pub async fn update_product(
 
 pub async fn delete_product(
     client: Data<Arc<Mutex<Client>>>,
-    product_id: Path<ProductId>,
+    product_id: Path<StoreId>,
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Verifying admin privileges for deleting a product");
@@ -207,8 +214,8 @@ pub async fn delete_product(
     };
 
     debug!("Deleting Product with id={}", product_id);
-    let query = format!("DELETE FROM {} WHERE id = $1", PRODUCTS_TABLE);
-    match client.lock().await.execute(&query, &[&*product_id]).await {
+    let stmt: String = format!("DELETE FROM {} WHERE id = $1", PRODUCTS_TABLE);
+    match client.lock().await.execute(&stmt, &[&*product_id]).await {
         Ok(rows_deleted) if rows_deleted > 0 => {
             info!("Successfully deleted product with id={}", product_id);
             HttpResponse::Ok().body("Product deleted")

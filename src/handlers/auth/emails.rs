@@ -1,4 +1,5 @@
-use crate::models::user::User;
+use crate::models::user::UserId;
+use crate::{db::tables::users::USERS_TABLE, models::user::User};
 use crate::utils::emails::send_email;
 use crate::utils::jwt::verify_jwt;
 use actix_web::{web::Data, HttpRequest, HttpResponse, Responder};
@@ -12,9 +13,9 @@ pub async fn recover_password(
     req: HttpRequest,
 ) -> impl Responder {
     debug!("Reading user profile");
-    let user_id = verify_jwt(&req).expect("oi");
-    let query = "SELECT * FROM users WHERE id = $1;";
-    match client.lock().await.query_opt(query, &[&user_id]).await {
+    let user_id: UserId = verify_jwt(&req).expect("oi");
+    let stmt: String = format!("SELECT * FROM {} WHERE id = $1;", USERS_TABLE);
+    match client.lock().await.query_opt(&stmt, &[&user_id]).await {
         Ok(Some(row)) => {
             let user: User = User::from_row(row);
             info!("Successfully retrieved user profile with id={}", user_id);
@@ -36,9 +37,9 @@ pub async fn recover_password(
 
 pub async fn verify_email(client: Data<Arc<Mutex<Client>>>, req: HttpRequest) -> impl Responder {
     debug!("Sending email verification");
-    let user_id = verify_jwt(&req).expect("oi");
-    let query: &str = "SELECT email FROM users WHERE id = $1;";
-    match client.lock().await.query_one(query, &[&user_id]).await {
+    let user_id: UserId = verify_jwt(&req).expect("oi");
+    let stmt: String= format!("SELECT email FROM {} WHERE id = $1;", USERS_TABLE);
+    match client.lock().await.query_one(&stmt, &[&user_id]).await {
         Ok(row) => {
             let email: String = row.get("email");
             let subject: &str = "Verify your email";

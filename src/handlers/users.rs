@@ -1,3 +1,4 @@
+use crate::db::tables::users::USERS_TABLE;
 use crate::models::user::{CreateUserRequest, CreateUserResponse, UpdateUserRequest, User, UserId};
 use crate::utils::admin::verify_admin;
 use crate::utils::bcrypt::hash_password;
@@ -24,12 +25,12 @@ pub async fn create_user(
 
     debug!("Inserting new user into the database");
     let hashed_password = hash_password(&user.password);
-    let query = "INSERT INTO users (first_name, email, password, decrypted_password) VALUES ($1, $2, $3, $4) RETURNING id";
+    let stmt = format!("INSERT INTO {} (first_name, email, password, decrypted_password) VALUES ($1, $2, $3, $4) RETURNING id", USERS_TABLE);
     match client
         .lock()
         .await
         .query_one(
-            query,
+            &stmt,
             &[
                 &user.first_name,
                 &user.email,
@@ -71,8 +72,8 @@ pub async fn read_user(
     };
 
     debug!("Querying user with id={}", user_id);
-    let query: &str = "SELECT * FROM users WHERE id = $1";
-    match client.lock().await.query_opt(query, &[&*user_id]).await {
+    let stmt= format!("SELECT * FROM {} WHERE id = $1", USERS_TABLE);
+    match client.lock().await.query_opt(&stmt, &[&*user_id]).await {
         Ok(Some(row)) => {
             let user: User = User::from_row(row);
             info!("Successfully retrieved user with id={}", user.id);
@@ -98,8 +99,8 @@ pub async fn read_users(client: Data<Arc<Mutex<Client>>>, req: HttpRequest) -> i
     };
 
     debug!("Querying all users from the database");
-    let query: &str = "SELECT * FROM users";
-    match client.lock().await.query(query, &[]).await {
+    let stmt= format!("SELECT * FROM {}", USERS_TABLE);
+    match client.lock().await.query(&stmt, &[]).await {
         Ok(rows) => {
             let users: Vec<User> = rows.into_iter().map(|row| User::from_row(row)).collect();
             info!("Successfully retrieved all users");
@@ -127,19 +128,19 @@ pub async fn update_user(
 
     debug!("Updating user with id={}", user_id);
     let hashed_password: String = hash_password(&user.password);
-    let query: &str = "
-        UPDATE users SET
+    let stmt= format!("
+        UPDATE {} SET
         first_name = $1, last_name = $2, email = $3,
         password = $4, decrypted_password = $5, role = $6,
         blog_role = $7, store_role = $8, youtube_role = $9, fanfic_role = $10,
         profile_picture = $11, phone_number = $12,
         is_verified = $13, last_login = $14, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $15";
+        WHERE id = $15", USERS_TABLE);
     match client
         .lock()
         .await
         .execute(
-            query,
+            &stmt,
             &[
                 &user.first_name,
                 &user.last_name,
@@ -188,8 +189,8 @@ pub async fn delete_user(
     };
 
     debug!("Deleting user with id={}", user_id);
-    let query: &str = "DELETE FROM users WHERE id = $1";
-    match client.lock().await.execute(query, &[&*user_id]).await {
+    let stmt= format!("DELETE FROM {} WHERE id = $1", USERS_TABLE);
+    match client.lock().await.execute(&stmt, &[&*user_id]).await {
         Ok(rows_deleted) if rows_deleted > 0 => {
             info!("Successfully deleted user with id={}", user_id);
             HttpResponse::Ok().body("User deleted")

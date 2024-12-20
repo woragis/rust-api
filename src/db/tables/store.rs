@@ -1,8 +1,7 @@
 use log::{debug, error, info};
-use std::error::Error;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tokio_postgres::Client;
+use tokio_postgres::{Client, Error};
 
 pub const PRODUCTS_TABLE: &str = "store_products";
 pub const ORDERS_TABLE: &str = "store_orders";
@@ -18,11 +17,11 @@ pub async fn create_store_tables(client: Arc<Mutex<Client>>) -> () {
     }
 }
 
-async fn create_products_table(client: &Arc<Mutex<Client>>) -> Result<(), Box<dyn Error>> {
+async fn create_products_table(client: &Arc<Mutex<Client>>) -> Result<(), Error> {
     debug!("Creating products table");
 
-    let create_users_table_sql = "
-        CREATE TABLE IF NOT EXISTS store_products (
+    let stmt: String = format!("
+        CREATE TABLE IF NOT EXISTS {} (
         id BIGSERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         description TEXT,
@@ -38,33 +37,33 @@ async fn create_products_table(client: &Arc<Mutex<Client>>) -> Result<(), Box<dy
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );";
+    );", PRODUCTS_TABLE);
 
     client
         .lock()
         .await
-        .execute(create_users_table_sql, &[])
+        .execute(&stmt, &[])
         .await?;
 
     Ok(())
 }
 
-pub async fn create_orders_table(client: &Arc<Mutex<Client>>) -> Result<(), Box<dyn Error>> {
+pub async fn create_orders_table(client: &Arc<Mutex<Client>>) -> Result<(), Error> {
     debug!("Creating orders table");
 
-    let create_users_table_sql = "
-        CREATE TABLE IF NOT EXISTS store_orders (
+    let stmt: String = format!("
+        CREATE TABLE IF NOT EXISTS {} (
         id BIGSERIAL PRIMARY KEY,
         user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         status VARCHAR(20) NOT NULL DEFAULT 'pending',
         total_amount NUMERIC(10, 2) NOT NULL
-    );";
+    );", ORDERS_TABLE);
 
     client
         .lock()
         .await
-        .execute(create_users_table_sql, &[])
+        .execute(&stmt, &[])
         .await?;
 
     Ok(())

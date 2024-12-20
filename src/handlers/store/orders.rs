@@ -1,5 +1,5 @@
 use crate::{
-    db::tables::store::ORDERS_TABLE, models::store::order::{CreateOrderRequest, Order}, utils::{admin::verify_admin, jwt::verify_jwt}
+    db::tables::store::ORDERS_TABLE, models::store::StoreId, models::{store::order::{CreateOrderRequest, Order}, user::UserId}, utils::{admin::verify_admin, jwt::verify_jwt}
 };
 use actix_web::{
     web::{Data, Json, Path},
@@ -15,19 +15,22 @@ pub async fn create_order(
     order: Json<CreateOrderRequest>,
     req: HttpRequest,
 ) -> impl Responder {
-    let user_id = verify_jwt(&req).expect("oi");
+    let user_id: UserId = verify_jwt(&req).expect("oi");
     debug!("Inserting new order into the database");
-    let query = format!("INSERT INTO {} (
+    let stmt: String = format!(
+        "INSERT INTO {} (
         user_id, status, total_amount) VALUES (
-        $1, $2, $3) RETURNING *", ORDERS_TABLE);
+        $1, $2, $3) RETURNING *",
+        ORDERS_TABLE
+    );
     match client
         .lock()
         .await
-        .query_one(&query, &[&user_id, &order.status, &order.total_amount])
+        .query_one(&stmt, &[&user_id, &order.status, &order.total_amount])
         .await
     {
         Ok(row) => {
-            let id = row.get("id");
+            let id: StoreId = row.get("id");
             println!("Created Order: '{}'", id);
             HttpResponse::Created().json(Order {
                 id,
@@ -46,8 +49,8 @@ pub async fn create_order(
 
 pub async fn read_order(client: Data<Arc<Mutex<Client>>>, order_id: Path<i32>) -> impl Responder {
     debug!("Inserting new order into the database");
-    let query = format!("SELECT * FROM {} WHERE id = $1", ORDERS_TABLE);
-    match client.lock().await.query_one(&query, &[&*order_id]).await {
+    let stmt: String = format!("SELECT * FROM {} WHERE id = $1", ORDERS_TABLE);
+    match client.lock().await.query_one(&stmt, &[&*order_id]).await {
         Ok(row) => {
             let order = Order::from_row(row);
             println!("Read Order '{}'", order.id);
@@ -62,8 +65,8 @@ pub async fn read_order(client: Data<Arc<Mutex<Client>>>, order_id: Path<i32>) -
 
 pub async fn read_orders(client: Data<Arc<Mutex<Client>>>) -> impl Responder {
     debug!("Inserting new order into the database");
-    let query = format!("SELECT * FROM {}", ORDERS_TABLE);
-    match client.lock().await.query(&query, &[]).await {
+    let stmt: String = format!("SELECT * FROM {}", ORDERS_TABLE);
+    match client.lock().await.query(&stmt, &[]).await {
         Ok(rows) => {
             let orders: Vec<Order> = rows.into_iter().map(|row| Order::from_row(row)).collect();
             println!("Read Orders");
@@ -93,14 +96,14 @@ pub async fn update_order(
     };
 
     debug!("Inserting new order into the database");
-    let query = format!("UPDATE {} SET
+    let stmt: String = format!("UPDATE {} SET
         user_id = $1, order_date = $2,
         status = $3, total_amount = $4 WHERE id = $5);", ORDERS_TABLE);
     match client
         .lock()
         .await
         .execute(
-            &query,
+            &stmt,
             &[
                 &order.user_id,
                 &order.order_date,
@@ -137,8 +140,8 @@ pub async fn delete_order(
     };
 
     debug!("Deleting order from database");
-    let query = format!("DELETE FROM {} WHERE id = $1", ORDERS_TABLE);
-    match client.lock().await.execute(&query, &[&*order_id]).await {
+    let stmt: String = format!("DELETE FROM {} WHERE id = $1", ORDERS_TABLE);
+    match client.lock().await.execute(&stmt, &[&*order_id]).await {
         Ok(rows_deleted) if rows_deleted > 0 => {
             info!("Successfully deleted order with id={}", order_id);
             HttpResponse::Ok().body("Order deleted")

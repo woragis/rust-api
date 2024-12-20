@@ -7,7 +7,7 @@ use crate::{
 };
 
 pub async fn generate_new_key() -> impl Responder {
-    let key = vec_to_string(&generate_key(BLOCK_SIZE));
+    let key: String = vec_to_string(&generate_key(BLOCK_SIZE));
     info!("Succeffully deleted data from password manager app");
     HttpResponse::Ok().json(key)
 }
