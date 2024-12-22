@@ -3,17 +3,19 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::{Client, Error};
 
+use crate::db::tables::users::USERS_TABLE;
+
 pub const PRODUCTS_TABLE: &str = "store_products";
 pub const ORDERS_TABLE: &str = "store_orders";
 
 pub async fn create_store_tables(client: Arc<Mutex<Client>>) -> () {
     match create_products_table(&client).await {
-        Ok(_) => info!("Table 'store_products' created"),
-        Err(_) => error!("Table 'store_products' not created"),
+        Ok(_) => info!("Table '{}' created", PRODUCTS_TABLE),
+        Err(err) => error!("Table '{}' not created: {:?}", PRODUCTS_TABLE, err),
     }
     match create_orders_table(&client).await {
-        Ok(_) => info!("Table 'store_orders' created"),
-        Err(_) => error!("Table 'store_orders' not created"),
+        Ok(_) => info!("Table '{}' created", ORDERS_TABLE),
+        Err(err) => error!("Table '{}' not created: {:?}", ORDERS_TABLE, err),
     }
 }
 
@@ -54,11 +56,11 @@ pub async fn create_orders_table(client: &Arc<Mutex<Client>>) -> Result<(), Erro
     let stmt: String = format!("
         CREATE TABLE IF NOT EXISTS {} (
         id BIGSERIAL PRIMARY KEY,
-        user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        user_id BIGINT NOT NULL REFERENCES {}(id) ON DELETE CASCADE,
         order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         status VARCHAR(20) NOT NULL DEFAULT 'pending',
         total_amount NUMERIC(10, 2) NOT NULL
-    );", ORDERS_TABLE);
+    );", ORDERS_TABLE, USERS_TABLE);
 
     client
         .lock()

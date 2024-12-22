@@ -15,32 +15,32 @@ pub const ARTICLES_TAGS_TABLE: &str = "news_articles_tags";
 pub async fn create_news_tables(client: Arc<Mutex<Client>>) -> () {
     match create_news_articles_table(&client).await {
         Ok(_) => info!("Table '{}' created", ARTICLES_TABLE),
-        _ => error!("Table '{}' not created", ARTICLES_TABLE),
+        Err(err) => error!("Table '{}' not created: {:?}", ARTICLES_TABLE, err),
     }
 
     match create_news_comments_table(&client).await {
         Ok(_) => info!("Table '{}' created", COMMENTS_TABLE),
-        _ => error!("Table '{}' not created", COMMENTS_TABLE),
+        Err(err) => error!("Table '{}' not created: {:?}", COMMENTS_TABLE, err),
     };
 
     match create_news_likes_table(&client).await {
         Ok(_) => info!("Table '{}' created", LIKES_TABLE),
-        _ => error!("Table '{}' not created", LIKES_TABLE),
+        Err(err) => error!("Table '{}' not created: {:?}", LIKES_TABLE, err),
     };
 
     match create_news_views_table(&client).await {
         Ok(_) => info!("Table '{}' created", VIEWS_TABLE),
-        _ => error!("Table '{}' not created", VIEWS_TABLE),
+        Err(err) => error!("Table '{}' not created: {:?}", VIEWS_TABLE, err),
     };
 
     match create_news_tags_table(&client).await {
         Ok(_) => info!("Table '{}' created", TAGS_TABLE),
-        _ => error!("Table '{}' not created", TAGS_TABLE),
+        Err(err) => error!("Table '{}' not created: {:?}", TAGS_TABLE, err),
     }
 
     match create_news_articles_tags_table(&client).await {
         Ok(_) => info!("Table '{}' created", ARTICLES_TAGS_TABLE),
-        _ => error!("Table '{}' not created", ARTICLES_TAGS_TABLE),
+        Err(err) => error!("Table '{}' not created: {:?}", ARTICLES_TAGS_TABLE, err),
     }
 
     ()

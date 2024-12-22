@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use actix_web::{web::{Data, Json, Path}, HttpRequest, HttpResponse, Responder};
+use log::info;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
@@ -24,10 +25,17 @@ pub async fn read_post(client: Data<Arc<Mutex<Client>>>, post_id: Path<Id>, req:
     let user_id = verify_jwt(&req).expect("hi");
     user_id;
     let stmt = format!("SELECT * FROM {} WHERE id = $1;", POSTS_TABLE);
-    match client.lock().await.execute(&stmt, &[
+    match client.lock().await.query_opt(&stmt, &[
         &*post_id,
     ]).await {
-        Ok(_) => HttpResponse::Created().body("created post"),
+        Ok(Some(row)) => {
+            info!("Successfully found post '{}'", &*post_id);
+            let post = BlogPost::from_row(row);
+            HttpResponse::Ok().json(post)
+        },
+        Ok(None) => {
+            HttpResponse::NotFound().body("Cound not find post")
+        }
         Err(_) => HttpResponse::InternalServerError().body("Hi")
     }
 }
@@ -39,7 +47,7 @@ pub async fn read_posts(client: Data<Arc<Mutex<Client>>>, req: HttpRequest) -> i
     match client.lock().await.query(&stmt, &[]).await {
         Ok(rows) => {
             let posts: Vec<BlogPost> = rows.into_iter().map(|row| BlogPost::from_row(row)).collect();
-            HttpResponse::Created().json(posts)
+            HttpResponse::Ok().json(posts)
         },
         Err(_) => HttpResponse::InternalServerError().body("Hi")
     }
@@ -48,7 +56,7 @@ pub async fn read_posts(client: Data<Arc<Mutex<Client>>>, req: HttpRequest) -> i
 pub async fn update_post(client: Data<Arc<Mutex<Client>>>, post_id: Path<Id>, post: Json<UpdateBlogPost>, req: HttpRequest) -> impl Responder {
     let user_id = verify_jwt(&req).expect("hi");
     let stmt = format!("UPDATE {} SET title = $1, body = $2, visibility = $3 WHERE id = $4 AND author_id = $5;", POSTS_TABLE);
-    match client.lock().await.execute(&stmt, &[
+    match client.lock().await.query_one(&stmt, &[
         &post.title,
         &post.body,
         &post.visibility,

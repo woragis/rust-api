@@ -9,7 +9,7 @@ pub async fn create_password_manager_tables(client: Arc<Mutex<Client>>) -> () {
 
     match create_password_manager_table(&client).await {
         Ok(_) => info!("Table '{}' created", PASSWORD_MANAGER_TABLE),
-        _ => error!("Table '{}' not created", PASSWORD_MANAGER_TABLE),
+        Err(err) => error!("Table '{}' not created: {:?}", PASSWORD_MANAGER_TABLE, err),
     }
     ()
 }
@@ -20,7 +20,7 @@ async fn create_password_manager_table(client: &Arc<Mutex<Client>>) -> Result<()
         CREATE TABLE IF NOT EXISTS {} (
         id BIGSERIAL PRIMARY KEY,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );",
         PASSWORD_MANAGER_TABLE
     );
