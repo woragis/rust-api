@@ -7,6 +7,8 @@ mod shared;
 // mod tests;
 mod utils;
 
+use actix_cors::Cors;
+use actix_web::http::header::{AUTHORIZATION, CONTENT_TYPE};
 use actix_web::{web::Data, App, HttpServer};
 use db::connection::DbConnection;
 use db::tables::news::create_news_tables;
@@ -51,6 +53,12 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(client.clone()))
+            .wrap(Cors::default()
+                .allowed_origin("http://127.0.0.1:5173")
+                .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+                .allowed_headers(vec![AUTHORIZATION, CONTENT_TYPE])
+                .max_age(3600)
+            )
             .service(users_routes())
             .service(products_routes())
             .service(auth_routes())
