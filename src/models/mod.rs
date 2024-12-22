@@ -5,3 +5,4 @@ pub mod store;
 pub mod stories;
 pub mod user;
 pub mod youtube;
+pub mod blog;

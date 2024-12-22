@@ -11,12 +11,14 @@ use actix_cors::Cors;
 use actix_web::http::header::{AUTHORIZATION, CONTENT_TYPE};
 use actix_web::{web::Data, App, HttpServer};
 use db::connection::DbConnection;
+use db::tables::blog::create_blog_tables;
 use db::tables::news::create_news_tables;
 use db::tables::password_manager::create_password_manager_tables;
 use db::tables::store::create_store_tables;
 use db::tables::users::create_users_table;
 use log::{error, info};
 use routes::auth::{auth_routes, profile_routes};
+use routes::blog::{blog_posts_routes, blog_subscriptions_routes};
 use routes::news::{news_articles_routes, news_tags_routes};
 use routes::password_manager::password_manager_routes;
 use routes::store::{orders_routes, products_routes};
@@ -46,6 +48,7 @@ async fn main() -> std::io::Result<()> {
         Err(err) => error!("Failed to create users table: {:?}", err),
     }
 
+    create_blog_tables(client.clone()).await;
     create_store_tables(client.clone()).await;
     create_news_tables(client.clone()).await;
     create_password_manager_tables(client.clone()).await;
@@ -54,13 +57,15 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(Data::new(client.clone()))
             .wrap(Cors::default()
-		.allow_any_origin()
+		        .allow_any_origin()
                 // .allowed_origin("http://127.0.0.1:5173")
                 .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
                 .allowed_headers(vec![AUTHORIZATION, CONTENT_TYPE])
                 .max_age(3600)
             )
             .service(users_routes())
+            .service(blog_posts_routes())
+            .service(blog_subscriptions_routes())
             .service(products_routes())
             .service(auth_routes())
             .service(profile_routes())
