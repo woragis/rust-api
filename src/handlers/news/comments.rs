@@ -9,10 +9,13 @@ use tokio_postgres::Client;
 
 use crate::{
     db::tables::news::COMMENTS_TABLE,
-    models::{news::{
-        comment::{Comment, CreateComment, DeleteComment, EditComment},
-        NewsId,
-    }, user::UserId},
+    models::{
+        news::{
+            comment::{Comment, CreateComment, DeleteComment, EditComment},
+            NewsId,
+        },
+        user::UserId,
+    },
     utils::jwt::verify_jwt,
 };
 

@@ -1,6 +1,12 @@
-use actix_web::{web::{scope, get, post, put, delete}, Scope};
+use actix_web::{
+    web::{delete, get, post, put, scope},
+    Scope,
+};
 
-use crate::handlers::blog::{posts::{create_post, delete_post, read_post, read_posts, update_post}, subscriptions::subscribe};
+use crate::handlers::blog::{
+    posts::{create_post, delete_post, read_post, read_posts, update_post},
+    subscriptions::subscribe,
+};
 
 pub fn blog_posts_routes() -> Scope {
     scope("/blog/posts")
@@ -12,6 +18,5 @@ pub fn blog_posts_routes() -> Scope {
 }
 
 pub fn blog_subscriptions_routes() -> Scope {
-    scope("/blog/subscriptions")
-        .route("/", post().to(subscribe))
+    scope("/blog/subscriptions").route("/", post().to(subscribe))
 }

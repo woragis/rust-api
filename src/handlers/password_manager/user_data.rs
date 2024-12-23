@@ -9,12 +9,22 @@ use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
 use crate::{
-    config::encryption::{BLOCK_SIZE, KEY}, db::tables::password_manager::PASSWORD_MANAGER_TABLE, models::{password_manager::user_data::{CreateData, ServiceData, UpdateData}, user::UserId}, shared::types::Id, utils::jwt::verify_jwt
+    config::encryption::{BLOCK_SIZE, KEY},
+    db::tables::password_manager::PASSWORD_MANAGER_TABLE,
+    models::{
+        password_manager::user_data::{CreateData, ServiceData, UpdateData},
+        user::UserId,
+    },
+    shared::types::Id,
+    utils::jwt::verify_jwt,
 };
 
 pub async fn get_data(client: Data<Arc<Mutex<Client>>>, req: HttpRequest) -> impl Responder {
     let user_id: UserId = verify_jwt(&req).expect("ho");
-    let stmt: String = format!("SELECT * FROM {} WHERE user_id = $1;", PASSWORD_MANAGER_TABLE);
+    let stmt: String = format!(
+        "SELECT * FROM {} WHERE user_id = $1;",
+        PASSWORD_MANAGER_TABLE
+    );
     match client.lock().await.query(&stmt, &[&user_id]).await {
         Ok(rows) => {
             let user_saved_data: Vec<ServiceData> = rows
@@ -97,7 +107,10 @@ pub async fn get_single_data(
     data_id: Path<Id>,
 ) -> impl Responder {
     let user_id: UserId = verify_jwt(&req).expect("ho");
-    let stmt: String = format!("SELECT * FROM {} WHERE id = $1 AND user_id = $2;", PASSWORD_MANAGER_TABLE);
+    let stmt: String = format!(
+        "SELECT * FROM {} WHERE id = $1 AND user_id = $2;",
+        PASSWORD_MANAGER_TABLE
+    );
     match client
         .lock()
         .await
@@ -123,7 +136,10 @@ pub async fn delete_data(
     data_id: Path<Id>,
 ) -> impl Responder {
     let user_id: UserId = verify_jwt(&req).expect("ho");
-    let stmt: String = format!("DELETE FROM {} WHERE id = $1 AND user_id = $2;", PASSWORD_MANAGER_TABLE);
+    let stmt: String = format!(
+        "DELETE FROM {} WHERE id = $1 AND user_id = $2;",
+        PASSWORD_MANAGER_TABLE
+    );
     match client
         .lock()
         .await

@@ -1,7 +1,5 @@
 use crate::db::tables::store::PRODUCTS_TABLE;
-use crate::models::store::product::{
-    CreateProductRequest, Product, UpdateProductRequest,
-};
+use crate::models::store::product::{CreateProductRequest, Product, UpdateProductRequest};
 use crate::models::store::StoreId;
 use crate::utils::admin::verify_admin;
 use actix_web::{
@@ -57,7 +55,7 @@ pub async fn create_product(
         .await
     {
         Ok(row) => {
-            let id: StoreId= row.get("id");
+            let id: StoreId = row.get("id");
             info!("Successfully created product with id={}", id);
             HttpResponse::Created().json(Product {
                 id,

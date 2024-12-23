@@ -1,5 +1,11 @@
 use crate::{
-    db::tables::store::ORDERS_TABLE, models::store::StoreId, models::{store::order::{CreateOrderRequest, Order}, user::UserId}, utils::{admin::verify_admin, jwt::verify_jwt}
+    db::tables::store::ORDERS_TABLE,
+    models::store::StoreId,
+    models::{
+        store::order::{CreateOrderRequest, Order},
+        user::UserId,
+    },
+    utils::{admin::verify_admin, jwt::verify_jwt},
 };
 use actix_web::{
     web::{Data, Json, Path},

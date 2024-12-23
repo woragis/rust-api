@@ -158,7 +158,6 @@ pub struct UpdateUserRequest {
     pub last_name: String,
     pub email: String,
     pub password: String,
-    pub decrypted_password: String,
     pub role: String,
     pub blog_role: String,
     pub store_role: String,

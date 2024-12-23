@@ -1,7 +1,7 @@
 use log::{debug, error, info};
 use std::sync::Arc;
 use tokio::{spawn, sync::Mutex};
-use tokio_postgres::{connect, Error, Client, NoTls};
+use tokio_postgres::{connect, Client, Error, NoTls};
 
 use crate::config::db::get_db_string;
 

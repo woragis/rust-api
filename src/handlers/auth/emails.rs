@@ -1,7 +1,7 @@
 use crate::models::user::UserId;
-use crate::{db::tables::users::USERS_TABLE, models::user::User};
 use crate::utils::emails::send_email;
 use crate::utils::jwt::verify_jwt;
+use crate::{db::tables::users::USERS_TABLE, models::user::User};
 use actix_web::{web::Data, HttpRequest, HttpResponse, Responder};
 use log::{debug, error, info, warn};
 use std::sync::Arc;
@@ -38,7 +38,7 @@ pub async fn recover_password(
 pub async fn verify_email(client: Data<Arc<Mutex<Client>>>, req: HttpRequest) -> impl Responder {
     debug!("Sending email verification");
     let user_id: UserId = verify_jwt(&req).expect("oi");
-    let stmt: String= format!("SELECT email FROM {} WHERE id = $1;", USERS_TABLE);
+    let stmt: String = format!("SELECT email FROM {} WHERE id = $1;", USERS_TABLE);
     match client.lock().await.query_one(&stmt, &[&user_id]).await {
         Ok(row) => {
             let email: String = row.get("email");

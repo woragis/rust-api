@@ -41,12 +41,12 @@ impl BlogPost {
 pub struct CreateBlogPost {
     pub title: String,
     pub body: String,
-    pub visibility: String
+    pub visibility: String,
 }
 
 #[derive(Deserialize)]
 pub struct UpdateBlogPost {
     pub title: String,
     pub body: String,
-    pub visibility: String
+    pub visibility: String,
 }

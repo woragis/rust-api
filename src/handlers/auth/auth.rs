@@ -1,5 +1,5 @@
 use crate::db::tables::users::USERS_TABLE;
-use crate::models::auth::{LoginRequest, RegisterRequest};
+use crate::models::auth::{AuthResponse, AuthUser, LoginRequest, RegisterRequest};
 use crate::models::user::UserId;
 use crate::utils::bcrypt::{hash_password, verify_password};
 use crate::utils::jwt::create_jwt;
@@ -36,11 +36,12 @@ pub async fn register(
         .await
     {
         Ok(row) => {
-            // let user: User = User::from_row(row);
-            let id: UserId = row.get("id");
-            info!("Successfully registered user with id={}", id);
-            let token: String = create_jwt(id, form.email.clone());
-            HttpResponse::Created().json(token)
+            let user: AuthUser = AuthUser::from_row(row);
+            let user_id: UserId = user.id.clone();
+            info!("Successfully registered user with id={}", user_id);
+            let token: String = create_jwt(user_id, form.email.clone());
+            let response: AuthResponse = AuthResponse { token, user };
+            HttpResponse::Created().json(response)
         }
         Err(err) => {
             error!("Failed to register user: {:?}", err);
@@ -51,16 +52,18 @@ pub async fn register(
 
 pub async fn login(client: Data<Arc<Mutex<Client>>>, form: Json<LoginRequest>) -> impl Responder {
     debug!("Logging user");
-    let stmt: String = format!("SELECT id, email, password FROM {} WHERE email = $1", USERS_TABLE);
+    let stmt: String = format!("SELECT * FROM {} WHERE email = $1;", USERS_TABLE);
     match client.lock().await.query_opt(&stmt, &[&form.email]).await {
         Ok(Some(row)) => {
-            let user_id: UserId = row.get("id");
-            let email: String = row.get("email");
             let password: String = row.get("password");
+            let user: AuthUser = AuthUser::from_row(row);
+            let user_id: UserId = user.id.clone();
+            let email: String = user.email.clone();
             if verify_password(&password, &form.password) {
                 info!("Successfuly logged in user with id={}", user_id);
-                let token = create_jwt(user_id, email);
-                HttpResponse::Ok().json(token)
+                let token: String = create_jwt(user_id, email);
+                let response: AuthResponse = AuthResponse { token, user };
+                HttpResponse::Ok().json(response)
             } else {
                 warn!("Failed to login - Invalid credentials");
                 HttpResponse::Unauthorized().body("Invalid credentials")

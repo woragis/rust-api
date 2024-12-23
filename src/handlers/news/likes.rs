@@ -7,7 +7,11 @@ use actix_web::{
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
-use crate::{db::tables::news::LIKES_TABLE, models::{news::NewsId, user::UserId}, utils::jwt::verify_jwt};
+use crate::{
+    db::tables::news::LIKES_TABLE,
+    models::{news::NewsId, user::UserId},
+    utils::jwt::verify_jwt,
+};
 
 pub async fn get_articles_likes(
     client: Data<Arc<Mutex<Client>>>,

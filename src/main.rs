@@ -56,12 +56,13 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(client.clone()))
-            .wrap(Cors::default()
-		        .allow_any_origin()
-                // .allowed_origin("http://127.0.0.1:5173")
-                .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
-                .allowed_headers(vec![AUTHORIZATION, CONTENT_TYPE])
-                .max_age(3600)
+            .wrap(
+                Cors::default()
+                    .allow_any_origin()
+                    // .allowed_origin("http://127.0.0.1:5173")
+                    .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+                    .allowed_headers(vec![AUTHORIZATION, CONTENT_TYPE])
+                    .max_age(3600),
             )
             .service(users_routes())
             .service(blog_posts_routes())

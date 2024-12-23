@@ -1,2 +1,2 @@
-pub mod subscriptions;
 pub mod posts;
+pub mod subscriptions;

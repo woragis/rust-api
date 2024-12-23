@@ -8,7 +8,8 @@ pub const USERS_TABLE: &str = "users";
 pub async fn create_users_table(client: Arc<Mutex<Client>>) -> Result<(), Error> {
     debug!("Creating users table");
 
-    let stmt: String = format!("
+    let stmt: String = format!(
+        "
         CREATE TABLE IF NOT EXISTS {} (
         id BIGSERIAL PRIMARY KEY,
         first_name VARCHAR(100) NOT NULL,
@@ -35,13 +36,11 @@ pub async fn create_users_table(client: Arc<Mutex<Client>>) -> Result<(), Error>
         CONSTRAINT check_store_role CHECK (store_role IN ('buyer', 'seller')),
         CONSTRAINT check_youtube_role CHECK (youtube_role IN ('user', 'youtuber')),
         CONSTRAINT check_fanfic_role CHECK (fanfic_role IN ('reader', 'writer'))
-    );", USERS_TABLE);
+    );",
+        USERS_TABLE
+    );
 
-    client
-        .lock()
-        .await
-        .execute(&stmt, &[])
-        .await?;
+    client.lock().await.execute(&stmt, &[]).await?;
 
     Ok(())
 }

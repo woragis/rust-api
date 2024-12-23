@@ -49,7 +49,8 @@ pub async fn create_news_tables(client: Arc<Mutex<Client>>) -> () {
 async fn create_news_articles_table(client: &Arc<Mutex<Client>>) -> Result<(), Error> {
     debug!("Creating news articles table");
 
-    let stmt: String = format!("
+    let stmt: String = format!(
+        "
         CREATE TABLE IF NOT EXISTS {} (
         id BIGSERIAL PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
@@ -74,7 +75,8 @@ async fn create_news_articles_table(client: &Arc<Mutex<Client>>) -> Result<(), E
 async fn create_news_comments_table(client: &Arc<Mutex<Client>>) -> Result<(), Error> {
     debug!("Creating news comments table");
 
-    let stmt: String = format!("
+    let stmt: String = format!(
+        "
         CREATE TABLE IF NOT EXISTS {} (
         id BIGSERIAL PRIMARY KEY,
         article_id BIGINT NOT NULL REFERENCES {}(id),
@@ -94,7 +96,8 @@ async fn create_news_comments_table(client: &Arc<Mutex<Client>>) -> Result<(), E
 async fn create_news_likes_table(client: &Arc<Mutex<Client>>) -> Result<(), Error> {
     debug!("Creating news likes table");
 
-    let stmt: String = format!("
+    let stmt: String = format!(
+        "
         CREATE TABLE IF NOT EXISTS {} (
         id BIGSERIAL PRIMARY KEY,
         article_id BIGINT REFERENCES {}(id),
@@ -112,7 +115,8 @@ async fn create_news_likes_table(client: &Arc<Mutex<Client>>) -> Result<(), Erro
 async fn create_news_views_table(client: &Arc<Mutex<Client>>) -> Result<(), Error> {
     debug!("Creating news views table");
 
-    let stmt: String = format!("
+    let stmt: String = format!(
+        "
         CREATE TABLE IF NOT EXISTS {} (
         id BIGSERIAL PRIMARY KEY,
         article_id BIGINT REFERENCES {}(id),
@@ -129,7 +133,8 @@ async fn create_news_views_table(client: &Arc<Mutex<Client>>) -> Result<(), Erro
 async fn create_news_tags_table(client: &Arc<Mutex<Client>>) -> Result<(), Error> {
     debug!("Creating news tags table");
 
-    let stmt: String = format!("
+    let stmt: String = format!(
+        "
         CREATE TABLE IF NOT EXISTS {} (
         id BIGSERIAL PRIMARY KEY,
         article_id BIGINT REFERENCES {}(id),
@@ -146,7 +151,8 @@ async fn create_news_tags_table(client: &Arc<Mutex<Client>>) -> Result<(), Error
 async fn create_news_articles_tags_table(client: &Arc<Mutex<Client>>) -> Result<(), Error> {
     debug!("Creating news articles tags table");
 
-    let stmt: String = format!("
+    let stmt: String = format!(
+        "
         CREATE TABLE IF NOT EXISTS {} (
         article_id BIGINT REFERENCES {}(id),
         tag_id BIGINT REFERENCES {}(id),

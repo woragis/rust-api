@@ -6,7 +6,7 @@ use crate::models::store::StoreId;
 
 #[derive(Serialize, Deserialize)]
 pub struct Order {
-    pub id: StoreId,                   // Primary key
+    pub id: StoreId,               // Primary key
     pub user_id: i32,              // Foreign key to the user
     pub order_date: NaiveDateTime, // Timestamp for when the order was placed
     pub status: String,            // Order status (e.g., pending, completed, canceled)

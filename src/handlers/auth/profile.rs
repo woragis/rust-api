@@ -1,7 +1,7 @@
-use crate::{db::tables::users::USERS_TABLE, models::auth::UpdateProfileRequest};
 use crate::models::user::{User, UserId};
 use crate::utils::bcrypt::hash_password;
 use crate::utils::jwt::verify_jwt;
+use crate::{db::tables::users::USERS_TABLE, models::auth::UpdateProfileRequest};
 use actix_web::{
     web::{Data, Json},
     HttpRequest, HttpResponse, Responder,
@@ -43,14 +43,17 @@ pub async fn update_profile(
     debug!("Updating user profile");
     let hashed_password = hash_password(&form.password);
     let user_id: UserId = verify_jwt(&req).expect("oi");
-    let stmt: String= format!("
+    let stmt: String = format!(
+        "
             UPDATE {} SET
             first_name = $1, last_name = $2, email = $3,
             password = $4, decrypted_password = $5, role = $6,
             blog_role = $7, store_role = $8, youtube_role = $9, fanfic_role = $10,
             profile_picture = $11, phone_number = $12,
             is_verified = $13, last_login = $14, updated_at = CURRENT_TIMESTAMP
-            WHERE id = $15", USERS_TABLE);
+            WHERE id = $15",
+        USERS_TABLE
+    );
     match client
         .lock()
         .await
@@ -89,7 +92,7 @@ pub async fn update_profile(
 pub async fn delete_profile(client: Data<Arc<Mutex<Client>>>, req: HttpRequest) -> impl Responder {
     debug!("Deleting user profile");
     let user_id: UserId = verify_jwt(&req).expect("oi");
-    let stmt: String= format!("DELETE FROM {} WHERE id = $1;", USERS_TABLE);
+    let stmt: String = format!("DELETE FROM {} WHERE id = $1;", USERS_TABLE);
     match client.lock().await.execute(&stmt, &[&user_id]).await {
         Ok(rows_deleted) if rows_deleted > 0 => {
             info!("Successfully deleted profile");

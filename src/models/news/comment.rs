@@ -33,8 +33,8 @@ pub struct CreateComment {
 
 #[derive(Deserialize)]
 pub struct EditComment {
-    pub id: NewsId,
-    pub article_id: NewsId,
+    // pub id: NewsId,
+    // pub article_id: NewsId,
     pub content: String,
 }
 

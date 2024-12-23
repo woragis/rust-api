@@ -22,7 +22,8 @@ pub async fn create_store_tables(client: Arc<Mutex<Client>>) -> () {
 async fn create_products_table(client: &Arc<Mutex<Client>>) -> Result<(), Error> {
     debug!("Creating products table");
 
-    let stmt: String = format!("
+    let stmt: String = format!(
+        "
         CREATE TABLE IF NOT EXISTS {} (
         id BIGSERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
@@ -39,13 +40,11 @@ async fn create_products_table(client: &Arc<Mutex<Client>>) -> Result<(), Error>
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );", PRODUCTS_TABLE);
+    );",
+        PRODUCTS_TABLE
+    );
 
-    client
-        .lock()
-        .await
-        .execute(&stmt, &[])
-        .await?;
+    client.lock().await.execute(&stmt, &[]).await?;
 
     Ok(())
 }
@@ -53,20 +52,19 @@ async fn create_products_table(client: &Arc<Mutex<Client>>) -> Result<(), Error>
 pub async fn create_orders_table(client: &Arc<Mutex<Client>>) -> Result<(), Error> {
     debug!("Creating orders table");
 
-    let stmt: String = format!("
+    let stmt: String = format!(
+        "
         CREATE TABLE IF NOT EXISTS {} (
         id BIGSERIAL PRIMARY KEY,
         user_id BIGINT NOT NULL REFERENCES {}(id) ON DELETE CASCADE,
         order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         status VARCHAR(20) NOT NULL DEFAULT 'pending',
         total_amount NUMERIC(10, 2) NOT NULL
-    );", ORDERS_TABLE, USERS_TABLE);
+    );",
+        ORDERS_TABLE, USERS_TABLE
+    );
 
-    client
-        .lock()
-        .await
-        .execute(&stmt, &[])
-        .await?;
+    client.lock().await.execute(&stmt, &[]).await?;
 
     Ok(())
 }

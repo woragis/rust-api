@@ -1,1 +1,1 @@
-use crate::db::tables::news::VIEWS_TABLE;
+// use crate::db::tables::news::VIEWS_TABLE;

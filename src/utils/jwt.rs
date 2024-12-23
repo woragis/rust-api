@@ -5,7 +5,7 @@ use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use log::{debug, error, info, warn};
 
-pub fn create_jwt(user_id: UserId, user_email: String) -> String {
+pub fn create_jwt(user_id: UserId, email: String) -> String {
     let expiration: usize = Utc::now()
         .checked_add_signed(Duration::hours(24))
         .expect("valid timestamp")
@@ -13,13 +13,13 @@ pub fn create_jwt(user_id: UserId, user_email: String) -> String {
 
     let claims = Claims {
         sub: user_id.clone(),
-        email: user_email.clone(),
+        email: email.clone(),
         exp: expiration,
     };
 
     debug!(
         "Creating JWT for user_id={} with email={} and expiration={}",
-        user_id, user_email, expiration
+        user_id, email, expiration
     );
 
     let token = encode(

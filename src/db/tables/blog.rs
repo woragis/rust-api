@@ -23,7 +23,8 @@ pub async fn create_blog_tables(client: Arc<Mutex<Client>>) -> () {
 async fn create_posts_table(client: &Arc<Mutex<Client>>) -> Result<(), Error> {
     debug!("Creating products table");
 
-    let stmt: String = format!("
+    let stmt: String = format!(
+        "
         CREATE TABLE IF NOT EXISTS {} (
         id BIGSERIAL PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
@@ -33,35 +34,30 @@ async fn create_posts_table(client: &Arc<Mutex<Client>>) -> Result<(), Error> {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT check_blog_post_visibility CHECK (visibility IN ('hidden', 'visible', 'private'))
-    );", POSTS_TABLE, USERS_TABLE);
+    );",
+        POSTS_TABLE, USERS_TABLE
+    );
 
-    client
-        .lock()
-        .await
-        .execute(&stmt, &[])
-        .await?;
+    client.lock().await.execute(&stmt, &[]).await?;
 
     Ok(())
 }
 
-
 async fn create_subscriptions_table(client: &Arc<Mutex<Client>>) -> Result<(), Error> {
     debug!("Creating products table");
 
-    let stmt: String = format!("
+    let stmt: String = format!(
+        "
         CREATE TABLE IF NOT EXISTS {} (
         id BIGSERIAL PRIMARY KEY,
         user_id BIGINT REFERENCES {}(id),
         author_id BIGINT REFERENCES {}(id),
         subscribed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );", SUBSCRIPTION_TABLE, USERS_TABLE, USERS_TABLE);
+    );",
+        SUBSCRIPTION_TABLE, USERS_TABLE, USERS_TABLE
+    );
 
-    client
-        .lock()
-        .await
-        .execute(&stmt, &[])
-        .await?;
+    client.lock().await.execute(&stmt, &[]).await?;
 
     Ok(())
 }
-

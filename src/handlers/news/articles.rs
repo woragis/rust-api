@@ -134,7 +134,8 @@ pub async fn update_article(
     }
 
     debug!("Updating article with id={}", article_id);
-    let stmt: String = format!("
+    let stmt: String = format!(
+        "
         UPDATE {} SET
         title = $1, content = $2, summary = $3,
         updated_at = CURRENT_TIMESTAMP
