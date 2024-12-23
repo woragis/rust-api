@@ -6,11 +6,11 @@ use crate::shared::types::Id;
 
 pub type BlogId = Id;
 
-pub enum BlogPostVisibility {
-    Hidden,
-    Visible,
-    Private,
-}
+// pub enum BlogPostVisibility {
+//     Hidden,
+//     Visible,
+//     Private,
+// }
 
 #[derive(Deserialize, Serialize)]
 pub struct BlogPost {
@@ -18,7 +18,7 @@ pub struct BlogPost {
     pub title: String,
     pub body: String,
     pub author_id: BlogId,
-    pub visibility: bool,
+    pub visibility: String,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
