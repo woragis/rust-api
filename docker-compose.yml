@@ -1,0 +1,78 @@
+services:
+  rust-api-database:
+    image: postgres:16.6
+    container_name: rust-api-database
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: rust_api
+    ports:
+      - "5432:5432"
+    volumes:
+      - rust_api_database_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "rust_api"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+      timeout: 5s
+    networks:
+      - rust-api-network
+
+  # rust-api-redis:
+  #   image: redis:7.2.5
+  #   container_name: rust-api-redis
+  #   ports:
+  #     - "6379:6379"
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     retries: 5
+  #     start_period: 5s
+  #     timeout: 5s
+  #   networks:
+  #     - rust-api-network
+
+  # nginx:
+  #   image: nginx:1.27.3
+  #   container_name: rust-api-nginx-backend
+  #   depends_on:
+  #     - rust-api-backend
+  #   ports:
+  #     - "8080:80"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/backend/nginx.conf:ro
+  #   networks:
+  #     - rust-api-network
+
+  rust-api:
+    container_name: rust-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" # Map ports if your app listens on one
+    depends_on:
+      - rust-api-database
+      # - rust-api-redis
+    environment:
+      RUST_LOG: debug # Example of passing environment variables
+      DATABASE_NAME: rust_api
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: password
+      DATABASE_HOST: localhost
+    volumes:
+      # - ./src:/app/src # For hot-reloading during development (optional)
+      - ./Cargo.toml:/app/Cargo.toml
+      - ./Cargo.lock:/app/Cargo.lock
+    networks:
+      - rust-api-network
+
+networks:
+  rust-api-network:
+    name: rust-api-network
+    driver: bridge
+
+volumes:
+  rust_api_database_data:
+    name: rust-api-database
